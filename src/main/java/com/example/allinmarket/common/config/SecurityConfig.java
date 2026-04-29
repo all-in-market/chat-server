@@ -5,36 +5,34 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebFluxSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+    public SecurityWebFilterChain filterChain(ServerHttpSecurity http) {
+        return http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/categories").permitAll()
-                        .requestMatchers("/seller/auth/**").permitAll()
-                        .requestMatchers("/seller/**").hasRole("SELLER")
-                        .anyRequest().hasRole("BUYER")
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
+                .authorizeExchange(auth -> auth
+                        .pathMatchers("/actuator/health").permitAll()
+                        .pathMatchers("/auth/**").permitAll()
+                        .pathMatchers("/products/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/categories").permitAll()
+                        .pathMatchers("/seller/auth/**").permitAll()
+                        .pathMatchers("/seller/**").hasRole("SELLER")
+                        .anyExchange().hasRole("BUYER")
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .addFilterBefore(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .build();
     }
 }

@@ -3,6 +3,8 @@ package com.example.allinmarket.chat.controller;
 import com.example.allinmarket.chat.assistant.AiAssistant;
 import com.example.allinmarket.chat.assistant.IntentClassifier;
 import com.example.allinmarket.chat.consts.ChatConsts;
+import com.example.allinmarket.chat.dto.ChatRequest;
+import com.example.allinmarket.chat.security.TokenHolder;
 import com.example.allinmarket.chat.service.ModerationService;
 import com.example.allinmarket.common.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -22,28 +24,35 @@ public class ChatController {
     private final AiAssistant aiAssistant;
     private final IntentClassifier intentClassifier;
     private final ModerationService moderationService;
+    private final TokenHolder tokenHolder;
 
-    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(
+            value = "/stream",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.TEXT_EVENT_STREAM_VALUE
+    )
     public Flux<String> stream(
-            @RequestParam String message,
+            @RequestBody ChatRequest request,
             @RequestHeader("Authorization") String token) {
-        return moderationService.isFlagged(message)
+        return moderationService.isFlagged(request.message())
                 .flatMapMany(flagged -> {
                     if (flagged) {
                         return Flux.just("[부적절한 내용이 포함되어 있어 답변할 수 없습니다.]");
                     }
+                    tokenHolder.set(token);
                     return SecurityUtils.getCurrentUserId()
                             .flatMapMany(userId ->
-                                    Mono.fromCallable(() -> intentClassifier.classify(message))
+                                    Mono.fromCallable(() -> intentClassifier.classify(request.message()))
                                             .subscribeOn(Schedulers.boundedElastic())
                                             .flatMapMany(intent -> {
                                                 if ("SMALL_TALK".equals(intent)) {
-                                                    return aiAssistant.smallTalk(userId, message);
+                                                    return aiAssistant.smallTalk(userId, request.message());
                                                 }
-                                                return aiAssistant.chat(userId, message, token);
+                                                return aiAssistant.chat(userId, request.message());
                                             })
                             );
                 })
+                .doFinally(signal -> tokenHolder.clear())
                 .doOnError(e -> log.error("[Chat] 스트리밍 오류: {}", e.getMessage()))
                 .onErrorResume(e -> Flux.just("[오류가 발생했습니다. 다시 시도해주세요.]"))
                 .doOnCancel(() -> log.info("[Chat] 클라이언트 연결 끊김"));

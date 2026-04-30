@@ -12,7 +12,7 @@ public class ChatBotConfig {
     public ChatMemoryProvider chatMemoryProvider() {
         return memoryId -> MessageWindowChatMemory.builder()
                 .id(memoryId)
-                .maxMessages(20)
+                .maxMessages(10)
                 .build();
     }
 }

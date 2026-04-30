@@ -1,5 +1,6 @@
 package com.example.allinmarket.chat.client;
 
+import com.example.allinmarket.chat.consts.ChatConsts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ public class ApiServerClient {
     public String getOrders(String token) {
         return apiServerWebClient.get()
                 .uri("/orders")
-                .header("Authorization", token)
+                .header(ChatConsts.AUTHORIZATION, token)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -25,7 +26,7 @@ public class ApiServerClient {
     public String getOrder(String token, Long orderId) {
         return apiServerWebClient.get()
                 .uri("/orders/{orderId}", orderId)
-                .header("Authorization", token)
+                .header(ChatConsts.AUTHORIZATION, token)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -37,7 +38,7 @@ public class ApiServerClient {
                 .uri(uri -> uri.path("/products")
                         .queryParam("keyword", keyword)
                         .build())
-                .header("Authorization", token)
+                .header(ChatConsts.AUTHORIZATION, token)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -47,7 +48,7 @@ public class ApiServerClient {
     public String getProduct(String token, Long productId) {
         return apiServerWebClient.get()
                 .uri("/products/{productId}", productId)
-                .header("Authorization", token)
+                .header(ChatConsts.AUTHORIZATION, token)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -57,7 +58,7 @@ public class ApiServerClient {
     public String createRefund(String token, Long orderId, String reason, String description) {
         return apiServerWebClient.post()
                 .uri("/orders/{orderId}/refunds", orderId)
-                .header("Authorization", token)
+                .header(ChatConsts.AUTHORIZATION, token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(new RefundRequest(reason, description))
                 .retrieve()

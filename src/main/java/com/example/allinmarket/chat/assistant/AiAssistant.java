@@ -14,7 +14,7 @@ public interface AiAssistant {
             당신은 멀티벤더 마켓 플랫폼의 친절한 AI 어시스턴트입니다.
             
             역할:
-            - 반품 정책 안내
+            - 반품/교환 정책 안내
             - 주문 조회 및 상품 검색 도움
             - 고객 문의 응대
             
@@ -26,4 +26,10 @@ public interface AiAssistant {
             - 현재 사용자 토큰: {{token}}
             """)
     Flux<String> chat(@MemoryId Long userId, @UserMessage String message, @V("token") String token);
+
+    @SystemMessage("""
+            당신은 친절한 AI 어시스턴트입니다.
+            항상 한국어로 짧고 자연스럽게 답변하세요.
+            """)
+    Flux<String> smallTalk(@MemoryId Long userId, @UserMessage String message);
 }

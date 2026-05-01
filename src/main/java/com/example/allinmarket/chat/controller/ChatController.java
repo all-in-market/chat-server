@@ -4,7 +4,6 @@ import com.example.allinmarket.chat.assistant.AiAssistant;
 import com.example.allinmarket.chat.assistant.IntentClassifier;
 import com.example.allinmarket.chat.consts.ChatConsts;
 import com.example.allinmarket.chat.dto.ChatRequest;
-import com.example.allinmarket.chat.security.TokenHolder;
 import com.example.allinmarket.chat.service.ModerationService;
 import com.example.allinmarket.common.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.util.context.Context;
 
 @Slf4j
 @RestController
@@ -44,14 +42,13 @@ public class ChatController {
                                     Mono.fromCallable(() -> intentClassifier.classify(request.message()))
                                             .subscribeOn(Schedulers.boundedElastic())
                                             .flatMapMany(intent -> {
-                                                if ("SMALL_TALK".equals(intent)) {
+                                                if (ChatConsts.SMALL_TALK.equals(intent)) {
                                                     return aiAssistant.smallTalk(userId, request.message());
                                                 }
-                                                return aiAssistant.chat(userId, request.message());
+                                                return aiAssistant.chat(userId, request.message(), token);
                                             })
                             );
                 })
-                .contextWrite(Context.of("token", token))
                 .doOnError(e -> log.error("[Chat] 스트리밍 오류: {}", e.getMessage()))
                 .onErrorResume(e -> Flux.just("[오류가 발생했습니다. 다시 시도해주세요.]"))
                 .doOnCancel(() -> log.info("[Chat] 클라이언트 연결 끊김"));

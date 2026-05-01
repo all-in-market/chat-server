@@ -3,6 +3,7 @@ package com.example.allinmarket.chat.assistant;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.V;
 import dev.langchain4j.service.spring.AiService;
 import reactor.core.publisher.Flux;
 
@@ -23,7 +24,7 @@ public interface AiAssistant {
             - 정책 관련 질문은 제공된 문서를 기반으로 답변하세요.
             - 반품은 사용자에게 반드시 확인 후 실행하세요.
             """)
-    Flux<String> chat(@MemoryId Long userId, @UserMessage String message);
+    Flux<String> chat(@MemoryId Long userId, @UserMessage String message, @V("token") String token);
 
     @SystemMessage("""
             당신은 친절한 AI 어시스턴트입니다.

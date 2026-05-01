@@ -60,11 +60,11 @@ langchain4j:
     chat-model:
       api-key: ${DEEPSEEK_API_KEY}
       base-url: https://api.deepseek.com
-      model-name: deepseek-v4-flash
+      model-name: deepseek-chat
     streaming-chat-model:
       api-key: ${DEEPSEEK_API_KEY}
       base-url: https://api.deepseek.com
-      model-name: deepseek-v4-flash
+      model-name: deepseek-chat
     moderation-model:
       api-key: ${OPENAI_API_KEY}
       model-name: omni-moderation-latest

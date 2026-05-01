@@ -15,56 +15,68 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class RealtimeChatService {
-    private final RealtimeChatMessageRepository realtimeChatMessageRepository;
-    private final RealtimeReadStatusRepository realtimeReadStatusRepository;
-    private final RealtimeChatParticipantRepository realtimeChatParticipantRepository;
-    private final RealtimeChatRoomRepository realtimeChatRoomRepository;
+    private final RealtimeChatMessageRepository chatMessageRepository;
+    private final RealtimeReadStatusRepository readStatusRepository;
+    private final RealtimeChatParticipantRepository chatParticipantRepository;
+    private final RealtimeChatRoomRepository chatRoomRepository;
+    private final RedisUnreadService unreadService;
 
     public RealtimeChatMessage save(RealtimeChatMessageDto dto, Long userId) {
-        RealtimeChatMessage realtimeChatMessage = RealtimeChatMessage.of(
+        RealtimeChatMessage chatMessage = RealtimeChatMessage.of(
                 dto.roomId(),
                 userId,
                 dto.message()
         );
 
-        return realtimeChatMessageRepository.save(realtimeChatMessage);
+        return chatMessageRepository.save(chatMessage);
     }
 
     @Transactional
     public void read(Long roomId, Long userId, Long messageId) {
-        RealtimeReadStatus readStatus = realtimeReadStatusRepository.findByRoomIdAndUserId(roomId, userId).orElseGet(
+        validateParticipant(roomId, userId);
+
+        RealtimeReadStatus readStatus = readStatusRepository.findByRoomIdAndUserId(roomId, userId).orElseGet(
                 () -> RealtimeReadStatus.of(roomId, userId, 0L)
         );
 
         readStatus.updateLastRead(messageId);
 
-        realtimeReadStatusRepository.save(readStatus);
+        readStatusRepository.save(readStatus);
+
+        unreadService.resetUnread(roomId, userId);
     }
 
-    public void validateParticipant(Long roomId, Long userId) {
-        boolean exists = realtimeChatParticipantRepository.existsByRealtimeChatRoomIdAndUserId(roomId, userId);
-
-        if (!exists) {
-            throw new BaseException(ErrorEnum.CHAT_ROOM_FORBIDDEN);
-        }
+    @Transactional
+    public List<Long> getParticipantIds(Long roomId) {
+        return chatParticipantRepository.findUserIdsByRoomId(roomId);
     }
 
     @Transactional
     public void enterRoom(Long roomId, Long userId) {
         validateParticipant(roomId, userId);
 
-        RealtimeChatRoom realtimeChatRoom = realtimeChatRoomRepository.findById(roomId).orElseThrow(
+        RealtimeChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(
                 () -> new BaseException(ErrorEnum.CHAT_ROOM_NOT_FOUND)
         );
 
-        RealtimeChatParticipant realtimeChatParticipant = RealtimeChatParticipant.of(
+        RealtimeChatParticipant chatParticipant = RealtimeChatParticipant.of(
                 userId,
-                realtimeChatRoom
+                chatRoom
         );
 
-        realtimeChatParticipantRepository.save(realtimeChatParticipant);
+        chatParticipantRepository.save(chatParticipant);
+    }
+
+    public void validateParticipant(Long roomId, Long userId) {
+        boolean exists = chatParticipantRepository.existsByRealtimeChatRoomIdAndUserId(roomId, userId);
+
+        if (!exists) {
+            throw new BaseException(ErrorEnum.CHAT_ROOM_FORBIDDEN);
+        }
     }
 }

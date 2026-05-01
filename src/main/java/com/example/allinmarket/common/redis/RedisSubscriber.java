@@ -1,7 +1,6 @@
 package com.example.allinmarket.common.redis;
 
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

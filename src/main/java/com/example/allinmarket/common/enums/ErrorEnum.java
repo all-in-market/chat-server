@@ -93,7 +93,11 @@ public enum ErrorEnum {
     STATISTICS_NOT_FOUND(404, "존재하지 않는 통계 데이터입니다."),
 
     // RAG
-    DOCUMENT_LOAD_FAILED(500, "문서 로드에 실패했습니다.");
+    DOCUMENT_LOAD_FAILED(500, "문서 로드에 실패했습니다."),
+
+    // Chat
+    CHAT_ROOM_FORBIDDEN(403, "해당 채팅방에 대한 접근 권한이 없습니다."),
+    CHAT_ROOM_NOT_FOUND(404, "채팅방이 존재하지 않습니다.");
 
     private final int status;
     private final String message;

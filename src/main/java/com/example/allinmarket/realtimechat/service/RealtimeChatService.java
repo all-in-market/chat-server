@@ -1,9 +1,12 @@
 package com.example.allinmarket.realtimechat.service;
 
+import com.example.allinmarket.common.enums.ErrorEnum;
+import com.example.allinmarket.common.exception.BaseException;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
 import com.example.allinmarket.realtimechat.entity.RealtimeReadStatus;
 import com.example.allinmarket.realtimechat.repository.RealtimeChatMessageRepository;
+import com.example.allinmarket.realtimechat.repository.RealtimeChatParticipantRepository;
 import com.example.allinmarket.realtimechat.repository.RealtimeReadStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RealtimeChatService {
     private final RealtimeChatMessageRepository realtimeChatMessageRepository;
     private final RealtimeReadStatusRepository realtimeReadStatusRepository;
+    private final RealtimeChatParticipantRepository realtimeChatParticipantRepository;
 
     public RealtimeChatMessage save(RealtimeChatMessageDto dto, Long userId) {
         RealtimeChatMessage realtimeChatMessage = RealtimeChatMessage.of(
@@ -34,5 +38,13 @@ public class RealtimeChatService {
         readStatus.updateLastRead(messageId);
 
         realtimeReadStatusRepository.save(readStatus);
+    }
+
+    public void validateParticipant(Long roomId, Long userId) {
+        boolean exists = realtimeChatParticipantRepository.existsByRealtimeChatRoomIdAndUserId(roomId, userId);
+
+        if (!exists) {
+            throw new BaseException(ErrorEnum.CHAT_ROOM_FORBIDDEN);
+        }
     }
 }

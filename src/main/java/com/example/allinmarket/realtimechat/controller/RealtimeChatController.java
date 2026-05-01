@@ -27,6 +27,8 @@ public class RealtimeChatController {
         if (RealtimeMessageType.ENTER.equals(dto.type())) {
             // 입장 메세지 (필요시 구현)
         }
+        realtimeChatService.validateParticipant(dto.roomId(), userId);
+
         // ChatService를 호출하여 DB(chat_messages 테이블)에 저장하는 로직 추가
         RealtimeChatMessage saved = realtimeChatService.save(dto, userId);
 
@@ -44,6 +46,8 @@ public class RealtimeChatController {
     @MessageMapping("/chat/read")
     public void read(RealtimeReadDto dto, Principal principal) {
         Long userId = Long.parseLong(principal.getName());
+
+        realtimeChatService.validateParticipant(dto.roomId(), userId);
 
         realtimeChatService.read(dto.roomId(), userId, dto.lastReadMessageId());
     }

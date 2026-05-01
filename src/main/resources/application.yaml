@@ -74,8 +74,8 @@ langchain4j:
   pgvector:
     host: ${DB_HOST:localhost}
     port: ${DB_PORT:5432}
-    database: ${DB_NAME}
-    user: ${DB_USERNAME}
+    database: ${DB_NAME:allinmarket}
+    user: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD}
     dimension: 1536
     create-table: false

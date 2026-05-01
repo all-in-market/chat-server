@@ -2,6 +2,7 @@ package com.example.allinmarket.realtimechat.controller;
 
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
 import com.example.allinmarket.realtimechat.dto.RealtimeReadDto;
+import com.example.allinmarket.realtimechat.enums.RealtimeMessageType;
 import com.example.allinmarket.realtimechat.facade.RealtimeChatFacade;
 import com.example.allinmarket.realtimechat.service.RealtimeChatService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,11 @@ public class RealtimeChatController {
     @MessageMapping("/chat/message")
     public void message(RealtimeChatMessageDto dto, Principal principal) {
         Long userId = Long.parseLong(principal.getName());
+
+        if (RealtimeMessageType.ENTER.equals(dto.type())) {
+            chatFacade.enterRoom(dto, userId);
+            return;
+        }
 
         chatFacade.sendMessage(dto, userId);
     }

@@ -3,6 +3,7 @@ package com.example.allinmarket.realtimechat.facade;
 import com.example.allinmarket.common.redis.RedisPublisher;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
+import com.example.allinmarket.realtimechat.enums.RealtimeMessageType;
 import com.example.allinmarket.realtimechat.service.RealtimeChatService;
 import com.example.allinmarket.realtimechat.service.RedisUnreadService;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +61,33 @@ public class RealtimeChatFacade {
                     @Override
                     public void afterCommit() {
                         redisPublisher.publish(dto.roomId(), response);
+                    }
+                }
+        );
+    }
+
+    @Transactional
+    public void enterRoom(RealtimeChatMessageDto dto, Long userId) {
+        // 채팅방 참여
+        chatService.enterRoom(dto.roomId(), userId);
+
+        // unread 초기화 (입장 시 읽음 처리)
+        unreadService.resetUnread(dto.roomId(), userId);
+
+        // 입장 이벤트 생성 (메세지 X)
+        RealtimeChatMessageDto messageDto = new RealtimeChatMessageDto(
+                RealtimeMessageType.ENTER,
+                dto.roomId(),
+                dto.senderName(),
+                null, // 메세지는 없음
+                Map.of() // unread 없음
+        );
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        redisPublisher.publish(dto.roomId(), messageDto);
                     }
                 }
         );

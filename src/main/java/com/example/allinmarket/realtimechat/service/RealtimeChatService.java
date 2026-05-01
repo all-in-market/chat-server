@@ -2,7 +2,12 @@ package com.example.allinmarket.realtimechat.service;
 
 import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.exception.BaseException;
+import com.example.allinmarket.common.redis.RedisPublisher;
+import com.example.allinmarket.common.response.PageResponse;
+import com.example.allinmarket.realtimechat.dto.RealtimeChatHistoryResponse;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
+import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageResponse;
+import com.example.allinmarket.realtimechat.dto.RealtimeReadDto;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatParticipant;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatRoom;
@@ -12,19 +17,24 @@ import com.example.allinmarket.realtimechat.repository.RealtimeChatParticipantRe
 import com.example.allinmarket.realtimechat.repository.RealtimeChatRoomRepository;
 import com.example.allinmarket.realtimechat.repository.RealtimeReadStatusRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RealtimeChatService {
     private final RealtimeChatMessageRepository chatMessageRepository;
     private final RealtimeReadStatusRepository readStatusRepository;
     private final RealtimeChatParticipantRepository chatParticipantRepository;
     private final RealtimeChatRoomRepository chatRoomRepository;
     private final RedisUnreadService unreadService;
+    private final RedisPublisher redisPublisher;
 
     public RealtimeChatMessage save(RealtimeChatMessageDto dto, Long userId) {
         RealtimeChatMessage chatMessage = RealtimeChatMessage.of(
@@ -49,9 +59,13 @@ public class RealtimeChatService {
         readStatusRepository.save(readStatus);
 
         unreadService.resetUnread(roomId, userId);
+
+        redisPublisher.publishRead(
+                roomId,
+                new RealtimeReadDto(roomId, userId, messageId)
+        );
     }
 
-    @Transactional
     public List<Long> getParticipantIds(Long roomId) {
         return chatParticipantRepository.findUserIdsByRoomId(roomId);
     }
@@ -80,5 +94,33 @@ public class RealtimeChatService {
         if (!exists) {
             throw new BaseException(ErrorEnum.CHAT_ROOM_FORBIDDEN);
         }
+    }
+
+    public RealtimeChatHistoryResponse getChatHistory(Long roomId, Long userId, Long lastMessageId, int size) {
+        validateParticipant(roomId, userId);
+
+        List<RealtimeChatMessage> messages = chatMessageRepository.findMessages(
+                roomId,
+                lastMessageId,
+                PageRequest.of(0, size + 1)
+        );
+
+        boolean hasNext = messages.size() > size;
+
+        if (hasNext) {
+            messages = messages.subList(0, size);
+        }
+
+        // 정렬 전 원본 리스트(내림차순)에서 마지막 요소 = 다음 커서
+        Long nextCursor = messages.isEmpty() ? null : messages.get(messages.size() - 1).getId();
+
+        List<RealtimeChatMessageResponse> responses = messages.stream()
+                .map(RealtimeChatMessageResponse::from)
+                .sorted(Comparator.comparing(RealtimeChatMessageResponse::messageId))
+                .toList();
+
+
+
+        return new RealtimeChatHistoryResponse(responses, nextCursor, hasNext);
     }
 }

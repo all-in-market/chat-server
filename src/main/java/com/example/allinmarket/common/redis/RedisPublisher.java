@@ -17,4 +17,10 @@ public class RedisPublisher {
 
         redisTemplate.convertAndSend(topic, message);
     }
+
+    public void publishRead(Long roomId, Object message) {
+        String topic = "chat.read." + roomId;
+
+        redisTemplate.convertAndSend(topic, message);
+    }
 }

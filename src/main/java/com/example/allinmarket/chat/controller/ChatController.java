@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.context.Context;
 
 @Slf4j
 @RestController
@@ -24,7 +25,6 @@ public class ChatController {
     private final AiAssistant aiAssistant;
     private final IntentClassifier intentClassifier;
     private final ModerationService moderationService;
-    private final TokenHolder tokenHolder;
 
     @PostMapping(
             value = "/stream",
@@ -39,7 +39,6 @@ public class ChatController {
                     if (flagged) {
                         return Flux.just("[부적절한 내용이 포함되어 있어 답변할 수 없습니다.]");
                     }
-                    tokenHolder.set(token);
                     return SecurityUtils.getCurrentUserId()
                             .flatMapMany(userId ->
                                     Mono.fromCallable(() -> intentClassifier.classify(request.message()))
@@ -52,7 +51,7 @@ public class ChatController {
                                             })
                             );
                 })
-                .doFinally(signal -> tokenHolder.clear())
+                .contextWrite(Context.of("token", token))
                 .doOnError(e -> log.error("[Chat] 스트리밍 오류: {}", e.getMessage()))
                 .onErrorResume(e -> Flux.just("[오류가 발생했습니다. 다시 시도해주세요.]"))
                 .doOnCancel(() -> log.info("[Chat] 클라이언트 연결 끊김"));

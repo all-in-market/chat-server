@@ -15,22 +15,26 @@ public class ChatTools {
 
     @Tool("사용자의 주문 목록을 조회합니다.")
     public String getOrders() {
-        return apiServerClient.getOrders(tokenHolder.get());
+        String token = tokenHolder.get().block();
+        return apiServerClient.getOrders(token);
     }
 
     @Tool("특정 주문의 상세 정보를 조회합니다.")
     public String getOrder(Long orderId) {
-        return apiServerClient.getOrder(tokenHolder.get(), orderId);
+        String token = tokenHolder.get().block();
+        return apiServerClient.getOrder(token, orderId);
     }
 
     @Tool("키워드로 상품을 검색합니다.")
     public String searchProducts(String keyword) {
-        return apiServerClient.getProducts(tokenHolder.get(), keyword);
+        String token = tokenHolder.get().block();
+        return apiServerClient.getProducts(token, keyword);
     }
 
     @Tool("특정 상품의 상세 정보를 조회합니다.")
     public String getProduct(Long productId) {
-        return apiServerClient.getProduct(tokenHolder.get(), productId);
+        String token = tokenHolder.get().block();
+        return apiServerClient.getProduct(token, productId);
     }
 
     @Tool("""
@@ -43,6 +47,7 @@ public class ChatTools {
             description은 추가 설명 (선택사항)
             """)
     public String createRefund(Long orderId, String reason, String description) {
-        return apiServerClient.createRefund(tokenHolder.get(), orderId, reason, description);
+        String token = tokenHolder.get().block();
+        return apiServerClient.createRefund(token, orderId, reason, description);
     }
 }

@@ -1,21 +1,16 @@
 package com.example.allinmarket.chat.security;
 
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 @Component
 public class TokenHolder {
 
-    private final ThreadLocal<String> token = new ThreadLocal<>();
+    private static final String TOKEN_KEY = "token";
 
-    public void set(String token) {
-        this.token.set(token);
-    }
-
-    public String get() {
-        return this.token.get();
-    }
-
-    public void clear() {
-        this.token.remove();
+    public Mono<String> get() {
+        return Mono.deferContextual(ctx ->
+                Mono.just(ctx.get(TOKEN_KEY))
+        );
     }
 }

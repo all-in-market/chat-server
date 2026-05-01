@@ -58,7 +58,9 @@ public class RealtimeChatService {
 
     @Transactional
     public void enterRoom(Long roomId, Long userId) {
-        validateParticipant(roomId, userId);
+        boolean exists = chatParticipantRepository.existsByRealtimeChatRoomIdAndUserId(roomId, userId);
+
+        if (exists) return;
 
         RealtimeChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(
                 () -> new BaseException(ErrorEnum.CHAT_ROOM_NOT_FOUND)

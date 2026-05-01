@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Map;
 
 @Service
@@ -13,7 +14,11 @@ public class RedisUnreadService {
 
     // 특정 유저 unread 카운트 증가
     public void incrementUnread(Long roomId, Long userId) {
-        redisTemplate.opsForHash().increment(generateKey(roomId), userId.toString(), 1);
+        String key = generateKey(roomId);
+
+        redisTemplate.opsForHash().increment(key, userId.toString(), 1);
+
+        redisTemplate.expire(key, Duration.ofDays(7));
     }
 
     // 특정 유저 unread 조회

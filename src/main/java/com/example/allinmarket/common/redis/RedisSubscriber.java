@@ -18,14 +18,12 @@ public class RedisSubscriber {
 
     public void onMessage(Message message, byte[] pattern) {
         try {
-            String body = new String(message.getBody());
-
-            RealtimeChatMessageDto dto = objectMapper.readValue(body, RealtimeChatMessageDto.class);
+            RealtimeChatMessageDto dto = objectMapper.readValue(message.getBody(), RealtimeChatMessageDto.class);
 
             // /sub/chat/room/{roomId}를 구독 중인 사람들에게 메세지 전달
             simpMessageSendingOperations.convertAndSend("/sub/chat/room/" + dto.roomId(), dto);
 
-            log.info("Redis 수진: {}", message);
+            log.info("Redis 수신: {}", message);
 
         } catch (Exception e) {
             log.error("Redis 메세지 처리 실패", e);

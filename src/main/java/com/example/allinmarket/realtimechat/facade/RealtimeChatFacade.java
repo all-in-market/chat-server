@@ -82,9 +82,6 @@ public class RealtimeChatFacade {
 
     @Transactional
     public void enterRoom(RealtimeChatMessageDto dto, Long userId, RealtimeChatSenderType senderType) {
-        // 채팅방 참여
-        chatService.enterRoom(dto.roomId(), userId);
-
         // 참여자 검증
         chatService.validateParticipant(dto.roomId(), userId);
 

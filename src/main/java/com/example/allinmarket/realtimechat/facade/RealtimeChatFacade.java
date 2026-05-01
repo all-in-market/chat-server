@@ -39,6 +39,9 @@ public class RealtimeChatFacade {
         // 메세지 저장
         RealtimeChatMessage saved = chatService.save(dto, senderId);
 
+        // 마지막 메세지 저장
+        chatService.updateLastMessage(saved.getRoomId(), saved.getMessage(), saved.getCreatedAt());
+
         // 참여자 조회
         List<Long> participants = chatService.getParticipantIds(dto.roomId());
 
@@ -112,8 +115,6 @@ public class RealtimeChatFacade {
 
     @Transactional
     public void handleMessage(RealtimeChatMessageDto dto, Long userId, RealtimeChatSenderType senderType) {
-        String destination = "/sub/chat/ack/" + userId;
-
         try {
             chatService.validateParticipant(dto.roomId(), userId);
 
@@ -123,7 +124,14 @@ public class RealtimeChatFacade {
                 sendMessage(dto, userId, senderType);
             }
 
-            sendAck(userId, dto.tempId(), "SUCCESS");
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            sendAck(userId, dto.tempId(), "SUCCESS");
+                        }
+                    }
+            );
 
         } catch (BaseException e) {
             log.error("채팅 처리 중 비즈니스 예외 발생: {}", e.getMessage());

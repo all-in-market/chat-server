@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -16,4 +18,13 @@ public class RealtimeChatRoom extends CreatableEntity {
     private Long id;
 
     private String roomName;
+
+    private String lastMessage;
+
+    private LocalDateTime lastMessageTime;
+
+    public void updateLastMessage(String lastMessage, LocalDateTime lastMessageTime) {
+        this.lastMessage = lastMessage;
+        this.lastMessageTime = lastMessageTime;
+    }
 }

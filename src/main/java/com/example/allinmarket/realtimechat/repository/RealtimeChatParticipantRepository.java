@@ -12,4 +12,7 @@ public interface RealtimeChatParticipantRepository extends JpaRepository<Realtim
 
     @Query("SELECT p.userId FROM RealtimeChatParticipant p WHERE p.realtimeChatRoom.id = :roomId")
     List<Long> findUserIdsByRoomId(@Param("roomId") Long roomId);
+
+    @Query("SELECT p FROM RealtimeChatParticipant p WHERE p.realtimeChatRoom.id IN :roomIds")
+    List<RealtimeChatParticipant> findAllByRealtimeChatRoomIdIn(@Param("roomIds") List<Long> roomIds);
 }

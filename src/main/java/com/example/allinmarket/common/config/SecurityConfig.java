@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .authorizeExchange(auth -> auth
                         .pathMatchers("/actuator/health").permitAll()
                         .pathMatchers("/auth/**").permitAll()
-                        .pathMatchers("/ws-chat").permitAll()
+                        .pathMatchers("/ws-chat/**").permitAll()
                         .pathMatchers("/products/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/categories").permitAll()
                         .pathMatchers("/seller/auth/**").permitAll()

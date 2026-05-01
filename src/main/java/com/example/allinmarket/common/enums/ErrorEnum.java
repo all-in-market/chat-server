@@ -98,7 +98,7 @@ public enum ErrorEnum {
     // Chat
     CHAT_ROOM_FORBIDDEN(403, "해당 채팅방에 대한 접근 권한이 없습니다."),
     CHAT_ROOM_NOT_FOUND(404, "채팅방이 존재하지 않습니다."),
-    CHAT_ROOM_ALREADY_EXISTS(404, "채팅방이 이미 존재 합니다.");
+    CHAT_ROOM_ALREADY_EXISTS(409, "채팅방이 이미 존재 합니다.");
 
     private final int status;
     private final String message;

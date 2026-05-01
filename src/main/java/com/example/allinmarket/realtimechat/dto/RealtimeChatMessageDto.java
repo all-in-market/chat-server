@@ -9,6 +9,7 @@ public record RealtimeChatMessageDto(
         Long roomId,
         String senderName,
         String message,
-        Map<Long, Integer> unreadCounts
+        Map<Long, Integer> unreadCounts,
+        String tempId
 ) {
 }

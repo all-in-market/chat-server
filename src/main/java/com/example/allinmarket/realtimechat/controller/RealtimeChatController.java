@@ -29,12 +29,7 @@ public class RealtimeChatController {
 
         RealtimeChatSenderType senderType = userPrincipal.senderType();
 
-        if (RealtimeChatMessageType.ENTER.equals(dto.type())) {
-            chatFacade.enterRoom(dto, userId, senderType);
-            return;
-        }
-
-        chatFacade.sendMessage(dto, userId, senderType);
+        chatFacade.handleMessage(dto, userId, senderType);
     }
 
     @MessageMapping("/chat/read")

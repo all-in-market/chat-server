@@ -1,5 +1,6 @@
 package com.example.allinmarket.realtimechat.facade;
 
+import com.example.allinmarket.common.exception.BaseException;
 import com.example.allinmarket.common.redis.RedisPublisher;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
@@ -9,6 +10,8 @@ import com.example.allinmarket.realtimechat.service.RealtimeChatProvider;
 import com.example.allinmarket.realtimechat.service.RealtimeChatService;
 import com.example.allinmarket.realtimechat.service.RedisUnreadService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -20,11 +23,13 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RealtimeChatFacade {
     private final RealtimeChatService chatService;
     private final RedisUnreadService unreadService;
     private final RedisPublisher redisPublisher;
     private final RealtimeChatProvider chatProvider;
+    private final SimpMessageSendingOperations messageSendingOperations;
 
     @Transactional
     public void sendMessage(RealtimeChatMessageDto dto, Long senderId, RealtimeChatSenderType senderType) {
@@ -58,7 +63,8 @@ public class RealtimeChatFacade {
                 saved.getRoomId(),
                 senderName,
                 saved.getMessage(),
-                unreadMap
+                unreadMap,
+                dto.tempId()
         );
 
         TransactionSynchronizationManager.registerSynchronization(
@@ -90,7 +96,8 @@ public class RealtimeChatFacade {
                 dto.roomId(),
                 senderName,
                 null, // 메세지는 없음
-                Map.of() // unread 없음
+                Map.of(), // unread 없음
+                dto.tempId()
         );
 
         TransactionSynchronizationManager.registerSynchronization(
@@ -100,6 +107,40 @@ public class RealtimeChatFacade {
                         redisPublisher.publish(dto.roomId(), messageDto);
                     }
                 }
+        );
+    }
+
+    @Transactional
+    public void handleMessage(RealtimeChatMessageDto dto, Long userId, RealtimeChatSenderType senderType) {
+        String destination = "/sub/chat/ack/" + userId;
+
+        try {
+            chatService.validateParticipant(dto.roomId(), userId);
+
+            if (RealtimeChatMessageType.ENTER.equals(dto.type())) {
+                enterRoom(dto, userId, senderType);
+            } else {
+                sendMessage(dto, userId, senderType);
+            }
+
+            sendAck(userId, dto.tempId(), "SUCCESS");
+
+        } catch (BaseException e) {
+            log.error("채팅 처리 중 비즈니스 예외 발생: {}", e.getMessage());
+            sendAck(userId, dto.tempId(), "ERROR_" + e.getErrorEnum());
+        } catch (Exception e) {
+            log.error("시스템 장애로 인한 채팅 전송 실패", e);
+            sendAck(userId, dto.tempId(), "SYSTEM_ERROR");
+        }
+    }
+
+    private void sendAck(Long userId, String tempId, String status) {
+        if (tempId == null) return;
+
+        messageSendingOperations.convertAndSendToUser(
+                userId.toString(),
+                "/sub/chat/status",
+                Map.of("tempId", tempId, "status", status)
         );
     }
 }

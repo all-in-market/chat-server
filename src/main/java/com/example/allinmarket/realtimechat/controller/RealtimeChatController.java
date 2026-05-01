@@ -25,7 +25,7 @@ public class RealtimeChatController {
         Long userId = Long.parseLong(principal.getName());
 
         if (RealtimeMessageType.ENTER.equals(dto.type())) {
-            // 입장 메세지 (필요시 구현)
+            realtimeChatService.enterRoom(dto.roomId(), userId);
         }
         realtimeChatService.validateParticipant(dto.roomId(), userId);
 

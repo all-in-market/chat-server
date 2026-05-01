@@ -19,4 +19,11 @@ public class RealtimeChatParticipant {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "realtime_chat_room_id", nullable = false)
     private RealtimeChatRoom realtimeChatRoom;
+
+    public static RealtimeChatParticipant of (Long userId, RealtimeChatRoom realtimeChatRoom) {
+        RealtimeChatParticipant realtimeChatParticipant = new RealtimeChatParticipant();
+        realtimeChatParticipant.userId = userId;
+        realtimeChatParticipant.realtimeChatRoom = realtimeChatRoom;
+        return realtimeChatParticipant;
+    }
 }

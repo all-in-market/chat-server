@@ -4,9 +4,12 @@ import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.exception.BaseException;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
+import com.example.allinmarket.realtimechat.entity.RealtimeChatParticipant;
+import com.example.allinmarket.realtimechat.entity.RealtimeChatRoom;
 import com.example.allinmarket.realtimechat.entity.RealtimeReadStatus;
 import com.example.allinmarket.realtimechat.repository.RealtimeChatMessageRepository;
 import com.example.allinmarket.realtimechat.repository.RealtimeChatParticipantRepository;
+import com.example.allinmarket.realtimechat.repository.RealtimeChatRoomRepository;
 import com.example.allinmarket.realtimechat.repository.RealtimeReadStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ public class RealtimeChatService {
     private final RealtimeChatMessageRepository realtimeChatMessageRepository;
     private final RealtimeReadStatusRepository realtimeReadStatusRepository;
     private final RealtimeChatParticipantRepository realtimeChatParticipantRepository;
+    private final RealtimeChatRoomRepository realtimeChatRoomRepository;
 
     public RealtimeChatMessage save(RealtimeChatMessageDto dto, Long userId) {
         RealtimeChatMessage realtimeChatMessage = RealtimeChatMessage.of(
@@ -46,5 +50,21 @@ public class RealtimeChatService {
         if (!exists) {
             throw new BaseException(ErrorEnum.CHAT_ROOM_FORBIDDEN);
         }
+    }
+
+    @Transactional
+    public void enterRoom(Long roomId, Long userId) {
+        validateParticipant(roomId, userId);
+
+        RealtimeChatRoom realtimeChatRoom = realtimeChatRoomRepository.findById(roomId).orElseThrow(
+                () -> new BaseException(ErrorEnum.CHAT_ROOM_NOT_FOUND)
+        );
+
+        RealtimeChatParticipant realtimeChatParticipant = RealtimeChatParticipant.of(
+                userId,
+                realtimeChatRoom
+        );
+
+        realtimeChatParticipantRepository.save(realtimeChatParticipant);
     }
 }

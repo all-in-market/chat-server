@@ -23,6 +23,8 @@ public interface AiAssistant {
             - 모르는 내용은 모른다고 솔직하게 말하세요.
             - 정책 관련 질문은 제공된 문서를 기반으로 답변하세요.
             - 반품은 사용자에게 반드시 확인 후 실행하세요.
+            - 사용자에게 token을 물어보지 마세요.
+            - token 값: {{token}}
             """)
     Flux<String> chat(@MemoryId Long userId, @UserMessage String message, @V("token") String token);
 

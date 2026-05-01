@@ -60,11 +60,11 @@ langchain4j:
     chat-model:
       api-key: ${DEEPSEEK_API_KEY}
       base-url: https://api.deepseek.com
-      model-name: deepseek-v4-flash
+      model-name: deepseek-chat
     streaming-chat-model:
       api-key: ${DEEPSEEK_API_KEY}
       base-url: https://api.deepseek.com
-      model-name: deepseek-v4-flash
+      model-name: deepseek-chat
     moderation-model:
       api-key: ${OPENAI_API_KEY}
       model-name: omni-moderation-latest
@@ -74,8 +74,8 @@ langchain4j:
   pgvector:
     host: ${DB_HOST:localhost}
     port: ${DB_PORT:5432}
-    database: ${DB_NAME}
-    user: ${DB_USERNAME}
+    database: ${DB_NAME:allinmarket}
+    user: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD}
     dimension: 1536
     create-table: false

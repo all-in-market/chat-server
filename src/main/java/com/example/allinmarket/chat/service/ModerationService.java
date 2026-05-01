@@ -23,7 +23,8 @@ public class ModerationService {
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnNext(flagged -> {
                     if (flagged) {
-                        log.warn("[Moderation] 유해 콘텐츠 감지: {}", message);
+                        log.warn("[Moderation] 유해 콘텐츠 감지 (length={}): [REDACTED]",
+                                message == null ? 0 : message.length());
                     }
                 });
     }

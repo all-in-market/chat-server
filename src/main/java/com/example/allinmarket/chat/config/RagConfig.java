@@ -20,7 +20,8 @@ public class RagConfig {
             @Value("${langchain4j.pgvector.port}") int port,
             @Value("${langchain4j.pgvector.database}") String database,
             @Value("${langchain4j.pgvector.user}") String user,
-            @Value("${langchain4j.pgvector.password}") String password
+            @Value("${langchain4j.pgvector.password}") String password,
+            @Value("${langchain4j.pgvector.dimension}") int dimension
     ) {
         return PgVectorEmbeddingStore.builder()
                 .host(host)
@@ -29,7 +30,7 @@ public class RagConfig {
                 .user(user)
                 .password(password)
                 .table("langchain4j_embedding_store")
-                .dimension(1536)
+                .dimension(dimension)
                 .build();
     }
 

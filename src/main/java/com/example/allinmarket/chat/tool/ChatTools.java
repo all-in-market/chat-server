@@ -31,7 +31,15 @@ public class ChatTools {
         return apiServerClient.getProduct(token, productId);
     }
 
-    @Tool("반품을 신청합니다. 사용자에게 반드시 확인 후 실행하세요.")
+    @Tool("""
+            반품을 신청합니다. 사용자에게 반드시 확인 후 실행하세요.
+            reason 가능한 값:
+            - CHANGE_OF_MIND: 고객 단순 변심
+            - WRONG_ITEM: 잘못된 상품
+            - DAMAGED: 상품 손상
+            - PAYMENT_AMOUNT_MISMATCH: 주문 금액과 실결제 금액이 상이
+            description은 추가 설명 (선택사항)
+            """)
     public String createRefund(String token, Long orderId, String reason, String description) {
         return apiServerClient.createRefund(token, orderId, reason, description);
     }

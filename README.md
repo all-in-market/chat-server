@@ -64,3 +64,72 @@ class OrderControllerTest {
 `@AutoConfigureRestTestClient`를 추가해 `RestTestClient` 빈을 주입받습니다.
 전환으로 `throws Exception` 선언, `MockMvcRequestBuilders` · `MockMvcResultMatchers` 관련 static import,
 그리고 Boot 4.x에서 제거된 `@MockBean`이 함께 정리됩니다.
+
+---
+
+# AI 챗봇 서버 (Chat Server)
+
+## 기술 스택
+
+- Spring Boot 4.0.5 / Java 21
+- Spring WebFlux (SSE 스트리밍)
+- LangChain4j 1.13.0-beta23
+- DeepSeek deepseek-chat (채팅)
+- OpenAI text-embedding-3-small (임베딩)
+- OpenAI omni-moderation-latest (콘텐츠 검사)
+- pgvector / PostgreSQL 17
+- Redis
+
+## 아키텍처 구조
+
+```
+클라이언트
+↓ POST /chat/stream
+ChatController
+├── ModerationService (유해 콘텐츠 검사)
+├── IntentClassifier (의도 분류)
+│   ├── SMALL_TALK → AiAssistant.smallTalk()
+│   └── INQUIRY    → AiAssistant.chat()
+│                      ├── RAG (반품/교환 정책 문서)
+│                      └── @Tool
+│                          ├── 주문 목록/단건 조회
+│                          ├── 상품 목록/단건 조회
+│                          └── 반품 신청
+↓ Flux<String> SSE 스트리밍
+클라이언트
+```
+
+## 주요 설계 결정
+
+| 항목 | 결정 | 이유 |
+|------|------|------|
+| MVC → WebFlux | WebFlux 전환 | SSE 스트리밍 지원 |
+| GET → POST | POST /chat/stream | message URL 노출 방지 |
+| SecurityContextHolder → ReactiveSecurityContextHolder | Reactor Context 기반 인증 | WebFlux 스레드 전환 시 ThreadLocal 손실 |
+| OpenAI → DeepSeek | chat 모델 교체 | 테스트 비용 절감 |
+
+## API 명세
+
+### POST /chat/stream
+
+**Request**
+```json
+{
+  "message": "반품 정책이 어떻게 되나요?"
+}
+```
+
+**Header**
+```
+Authorization: Bearer {JWT토큰}
+Content-Type: application/json
+```
+
+**Response** (SSE 스트리밍)
+```
+data: 반
+data: 품
+data: 정
+data: 책
+...
+```

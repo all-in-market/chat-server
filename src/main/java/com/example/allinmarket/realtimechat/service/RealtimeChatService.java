@@ -15,10 +15,10 @@ public class RealtimeChatService {
     private final RealtimeChatMessageRepository realtimeChatMessageRepository;
     private final RealtimeReadStatusRepository realtimeReadStatusRepository;
 
-    public RealtimeChatMessage save(RealtimeChatMessageDto dto) {
+    public RealtimeChatMessage save(RealtimeChatMessageDto dto, Long userId) {
         RealtimeChatMessage realtimeChatMessage = RealtimeChatMessage.of(
                 dto.roomId(),
-                dto.senderId(),
+                userId,
                 dto.message()
         );
 

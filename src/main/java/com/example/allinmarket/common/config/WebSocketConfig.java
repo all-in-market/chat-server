@@ -1,6 +1,9 @@
 package com.example.allinmarket.common.config;
 
+import com.example.allinmarket.common.security.JwtChannelInterceptor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -8,7 +11,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private final JwtChannelInterceptor jwtChannelInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry messageBrokerRegistry) {
@@ -25,5 +30,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         stompEndpointRegistry.addEndpoint("/ws-chat")
                 .setAllowedOriginPatterns("*") // 테스트용 모든 도메인 허용
                 .withSockJS(); // 낮은 버전 브라우저 지원
+    }
+
+    @Override // 인터셉터 등록 로직
+    public void configureClientInboundChannel(ChannelRegistration channelRegistration) {
+        channelRegistration.interceptors(jwtChannelInterceptor);
     }
 }

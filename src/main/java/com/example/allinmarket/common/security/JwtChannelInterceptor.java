@@ -2,6 +2,7 @@ package com.example.allinmarket.common.security;
 
 import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.exception.BaseException;
+import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -39,10 +40,13 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
             }
 
             Long userId = jwtProvider.getUserId(token);
+            RealtimeChatSenderType senderType = jwtProvider.getSenderType(token);
 
             // Principal 세팅
+            UserPrincipal principal = new UserPrincipal(userId, senderType);
+
             accessor.setUser(new UsernamePasswordAuthenticationToken(
-                    userId.toString(), null, List.of()
+                    principal, null, List.of()
             ));
         }
 

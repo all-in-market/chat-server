@@ -1,12 +1,15 @@
 package com.example.allinmarket.realtimechat.controller;
 
+import com.example.allinmarket.common.security.UserPrincipal;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
 import com.example.allinmarket.realtimechat.dto.RealtimeReadDto;
-import com.example.allinmarket.realtimechat.enums.RealtimeMessageType;
+import com.example.allinmarket.realtimechat.enums.RealtimeChatMessageType;
+import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
 import com.example.allinmarket.realtimechat.facade.RealtimeChatFacade;
 import com.example.allinmarket.realtimechat.service.RealtimeChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -20,19 +23,25 @@ public class RealtimeChatController {
     // /pub/chat/message 경로로 메세지가 오면 실행 됨
     @MessageMapping("/chat/message")
     public void message(RealtimeChatMessageDto dto, Principal principal) {
-        Long userId = Long.parseLong(principal.getName());
+        UserPrincipal userPrincipal = (UserPrincipal) ((Authentication) principal).getPrincipal();
 
-        if (RealtimeMessageType.ENTER.equals(dto.type())) {
-            chatFacade.enterRoom(dto, userId);
+        Long userId = userPrincipal.userId();
+
+        RealtimeChatSenderType senderType = userPrincipal.senderType();
+
+        if (RealtimeChatMessageType.ENTER.equals(dto.type())) {
+            chatFacade.enterRoom(dto, userId, senderType);
             return;
         }
 
-        chatFacade.sendMessage(dto, userId);
+        chatFacade.sendMessage(dto, userId, senderType);
     }
 
     @MessageMapping("/chat/read")
     public void read(RealtimeReadDto dto, Principal principal) {
-        Long userId = Long.parseLong(principal.getName());
+        UserPrincipal userPrincipal = (UserPrincipal) ((Authentication) principal).getPrincipal();
+
+        Long userId = userPrincipal.userId();
 
         chatService.read(dto.roomId(), userId, dto.lastReadMessageId());
     }

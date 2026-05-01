@@ -1,6 +1,7 @@
 package com.example.allinmarket.common.security;
 
 import com.example.allinmarket.common.enums.UserRole;
+import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -69,5 +70,10 @@ public class JwtProvider {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    public RealtimeChatSenderType getSenderType(String token) {
+        String senderType = getClaims(token).get("senderType", String.class);
+        return RealtimeChatSenderType.valueOf(senderType);
     }
 }

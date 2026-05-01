@@ -1,6 +1,6 @@
 package com.example.allinmarket.realtimechat.enums;
 
-public enum RealtimeMessageType {
+public enum RealtimeChatMessageType {
     ENTER,
     TALK
 }

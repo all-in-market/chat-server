@@ -3,7 +3,9 @@ package com.example.allinmarket.realtimechat.facade;
 import com.example.allinmarket.common.redis.RedisPublisher;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
-import com.example.allinmarket.realtimechat.enums.RealtimeMessageType;
+import com.example.allinmarket.realtimechat.enums.RealtimeChatMessageType;
+import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
+import com.example.allinmarket.realtimechat.service.RealtimeChatProvider;
 import com.example.allinmarket.realtimechat.service.RealtimeChatService;
 import com.example.allinmarket.realtimechat.service.RedisUnreadService;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +24,10 @@ public class RealtimeChatFacade {
     private final RealtimeChatService chatService;
     private final RedisUnreadService unreadService;
     private final RedisPublisher redisPublisher;
+    private final RealtimeChatProvider chatProvider;
 
     @Transactional
-    public void sendMessage(RealtimeChatMessageDto dto, Long senderId) {
+    public void sendMessage(RealtimeChatMessageDto dto, Long senderId, RealtimeChatSenderType senderType) {
         // 참여자 검증
         chatService.validateParticipant(dto.roomId(), senderId);
 
@@ -48,10 +51,12 @@ public class RealtimeChatFacade {
             unreadMap.put(userId, unreadService.getUnread(dto.roomId(), userId));
         }
 
+        String senderName = chatProvider.getUserName(senderId, senderType);
+
         RealtimeChatMessageDto response = new RealtimeChatMessageDto(
-                dto.type(),
+                RealtimeChatMessageType.TALK,
                 saved.getRoomId(),
-                dto.senderName(),
+                senderName,
                 saved.getMessage(),
                 unreadMap
         );
@@ -67,18 +72,23 @@ public class RealtimeChatFacade {
     }
 
     @Transactional
-    public void enterRoom(RealtimeChatMessageDto dto, Long userId) {
+    public void enterRoom(RealtimeChatMessageDto dto, Long userId, RealtimeChatSenderType senderType) {
         // 채팅방 참여
         chatService.enterRoom(dto.roomId(), userId);
+
+        // 참여자 검증
+        chatService.validateParticipant(dto.roomId(), userId);
 
         // unread 초기화 (입장 시 읽음 처리)
         unreadService.resetUnread(dto.roomId(), userId);
 
+        String senderName = chatProvider.getUserName(userId, senderType);
+
         // 입장 이벤트 생성 (메세지 X)
         RealtimeChatMessageDto messageDto = new RealtimeChatMessageDto(
-                RealtimeMessageType.ENTER,
+                RealtimeChatMessageType.ENTER,
                 dto.roomId(),
-                dto.senderName(),
+                senderName,
                 null, // 메세지는 없음
                 Map.of() // unread 없음
         );

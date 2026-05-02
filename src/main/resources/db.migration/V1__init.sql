@@ -8,6 +8,8 @@ CREATE TABLE realtime_chat_rooms (
                                      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                      -- 유니크 제약 조건 : 동일한 구매자와 판매자 사이에는 하나의 방만 존재
                                      CONSTRAINT uk_realtime_chat_room_buyer_seller UNIQUE (buyer_id, seller_id)
+                                     -- 구매자와 판매자가 동일인물인 경우 차단
+                                     CONSTRAINT chk_realtime_chat_room_buyer_ne_seller CHECK (buyer_id <> seller_id),
 );
 
 -- 인덱스 : 채팅방 목록 조회 시 마지막 메시지 시간순 정렬 최적화
@@ -45,6 +47,8 @@ CREATE TABLE realtime_chat_messages (
                                         sender_id BIGINT NOT NULL,
                                         message VARCHAR(3000) NOT NULL,
                                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                        -- 방 삭제 시 해당 메시지들도 모두 삭제 (데이터 무결성)
+                                        CONSTRAINT fk_chat_message_room_id FOREIGN KEY (room_id) REFERENCES realtime_chat_rooms(id) ON DELETE CASCADE
 );
 
 -- 인덱스 : 특정 방의 메시지 이력을 최신순/커서 기반으로 조회할 때 필수
@@ -59,6 +63,10 @@ CREATE TABLE realtime_chat_read_status (
                                            room_id BIGINT NOT NULL,
                                            user_id BIGINT NOT NULL,
                                            last_read_message_id BIGINT NOT NULL,
+                                           -- 방 삭제 시 읽음 상태 기록 삭제
+                                           CONSTRAINT fk_chat_read_status_room_id FOREIGN KEY (room_id) REFERENCES realtime_chat_rooms(id) ON DELETE CASCADE,
+                                           -- 메시지 참조 (단, 메시지 삭제 시 처리는 비즈니스 로직에 따라 다를 수 있음)
+                                           CONSTRAINT fk_chat_read_status_last_read_message_id FOREIGN KEY (last_read_message_id) REFERENCES realtime_chat_messages(id),
                                            -- 유니크 제약 조건 : 방 + 유저당 하나의 읽음 상태만 존재
                                            CONSTRAINT uk_realtime_chat_read_status_room_user UNIQUE (room_id, user_id)
 );

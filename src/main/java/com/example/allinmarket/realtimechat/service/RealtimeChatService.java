@@ -107,10 +107,14 @@ public class RealtimeChatService {
 
     @Transactional
     public void updateLastMessage(Long roomId, String lastMessage, LocalDateTime lastMessageTime) {
-        RealtimeChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(
-                () -> new BaseException(ErrorEnum.CHAT_ROOM_NOT_FOUND)
-        );
+        int updated = chatRoomRepository.updateLastMessageIfNewer(roomId, lastMessage, lastMessageTime);
 
-        chatRoomRepository.updateLastMessageIfNewer(roomId, lastMessage, lastMessageTime);
+        if (updated == 0) {
+            boolean exists = chatRoomRepository.existsById(roomId);
+
+            if (!exists) {
+                throw new BaseException(ErrorEnum.CHAT_ROOM_NOT_FOUND);
+            }
+        }
     }
 }

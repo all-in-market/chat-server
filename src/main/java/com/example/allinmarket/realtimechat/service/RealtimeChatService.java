@@ -33,6 +33,7 @@ public class RealtimeChatService {
     private final RedisUnreadService unreadService;
     private final RedisPublisher redisPublisher;
 
+    @Transactional
     public RealtimeChatMessage save(RealtimeChatMessageDto dto, Long userId) {
         RealtimeChatMessage chatMessage = RealtimeChatMessage.of(
                 dto.roomId(),

@@ -5,7 +5,6 @@ import com.example.allinmarket.common.exception.BaseException;
 import com.example.allinmarket.common.redis.RedisPublisher;
 import com.example.allinmarket.realtimechat.dto.*;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
-import com.example.allinmarket.realtimechat.entity.RealtimeChatParticipant;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatRoom;
 import com.example.allinmarket.realtimechat.entity.RealtimeReadStatus;
 import com.example.allinmarket.realtimechat.repository.RealtimeChatMessageRepository;
@@ -75,6 +74,10 @@ public class RealtimeChatService {
     }
 
     public RealtimeChatHistoryResponse getChatHistory(Long roomId, Long userId, Long lastMessageId, int size) {
+        if (size < 1 || size > 100) {
+            throw new BaseException(ErrorEnum.INVALID_INPUT);
+        }
+
         validateParticipant(roomId, userId);
 
         List<RealtimeChatMessage> messages = chatMessageRepository.findMessages(

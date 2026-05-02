@@ -11,6 +11,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RedisUnreadService {
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RealtimeReadStatusService readStatusService;
 
     // 특정 유저 unread 카운트 증가
     public void incrementUnread(Long roomId, Long userId) {
@@ -23,9 +24,28 @@ public class RedisUnreadService {
 
     // 특정 유저 unread 조회
     public int getUnread(Long roomId, Long userId) {
-        Object value = redisTemplate.opsForHash().get(generateKey(roomId), userId.toString());
+        String key = generateKey(roomId);
+        String field = userId.toString();
 
-        return value == null ? 0 : Integer.parseInt(value.toString());
+        Object value = redisTemplate.opsForHash().get(key, field);
+
+        if (value != null) {
+            return Integer.parseInt(value.toString());
+        }
+
+        synchronized ((key + field).intern()) {
+            Object retry = redisTemplate.opsForHash().get(key, field);
+
+            if (retry != null) {
+                return Integer.parseInt(retry.toString());
+            }
+            int unread = readStatusService.calculateUnreadFromDB(roomId, userId);
+
+            redisTemplate.opsForHash().put(key, field, unread);
+            redisTemplate.expire(key, Duration.ofDays(7));
+
+            return unread;
+        }
     }
 
     // 메세지 확인 시 unread 초기화

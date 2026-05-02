@@ -36,6 +36,10 @@ public class RealtimeChatAPIController {
             @RequestParam(defaultValue = "50") int size,
             Principal principal
     ) {
+        if (size < 1 || size > 100) {
+            throw new BaseException(ErrorEnum.INVALID_INPUT);
+        }
+
         UserPrincipal userPrincipal = (UserPrincipal) ((Authentication) principal).getPrincipal();
 
         Long userId = userPrincipal.userId();

@@ -133,9 +133,12 @@ public class RealtimeChatFacade {
         } catch (BaseException e) {
             log.error("채팅 처리 중 비즈니스 예외 발생: {}", e.getMessage());
             sendAck(userId, dto.tempId(), "ERROR_" + e.getErrorEnum());
+            throw e;
+
         } catch (Exception e) {
             log.error("시스템 장애로 인한 채팅 전송 실패", e);
             sendAck(userId, dto.tempId(), "SYSTEM_ERROR");
+            throw e;
         }
     }
 

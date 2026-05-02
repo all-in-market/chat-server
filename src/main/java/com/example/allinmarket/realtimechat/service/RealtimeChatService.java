@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -45,6 +47,16 @@ public class RealtimeChatService {
     public void read(Long roomId, Long userId, Long messageId) {
         validateParticipant(roomId, userId);
 
+        if (messageId == null) {
+            throw new BaseException(ErrorEnum.INVALID_INPUT);
+        }
+
+        Long lastMessageId = chatRoomRepository.findLastMessageId(roomId);
+
+        if (lastMessageId == null || messageId > lastMessageId) {
+            throw new BaseException(ErrorEnum.INVALID_INPUT);
+        }
+
         RealtimeReadStatus readStatus = readStatusRepository.findByRoomIdAndUserId(roomId, userId).orElseGet(
                 () -> RealtimeReadStatus.of(roomId, userId, 0L)
         );
@@ -53,12 +65,19 @@ public class RealtimeChatService {
 
         readStatusRepository.save(readStatus);
 
-        redisPublisher.publishRead(
-                roomId,
-                new RealtimeReadDto(roomId, userId, messageId)
-        );
-
         unreadService.resetUnread(roomId, userId);
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        redisPublisher.publishRead(
+                                roomId,
+                                new RealtimeReadDto(roomId, userId, messageId)
+                        );
+                    }
+                }
+        );
     }
 
     public List<Long> getParticipantIds(Long roomId) {

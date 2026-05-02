@@ -1,6 +1,8 @@
 package com.example.allinmarket.common.security;
 
+import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.enums.UserRole;
+import com.example.allinmarket.common.exception.BaseException;
 import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -74,6 +76,17 @@ public class JwtProvider {
 
     public RealtimeChatSenderType getSenderType(String token) {
         String senderType = getClaims(token).get("senderType", String.class);
-        return RealtimeChatSenderType.valueOf(senderType);
+
+        if (senderType == null) {
+            log.warn("토큰에서 senderType을 확인할 수 없습니다.");
+            throw new BaseException(ErrorEnum.TOKEN_INVALID);
+        }
+
+        try {
+            return RealtimeChatSenderType.valueOf(senderType);
+        } catch (IllegalArgumentException e) {
+            log.warn("senderType이 올바르지 않습니다. value: {}", senderType);
+            throw new BaseException(ErrorEnum.SENDER_TYPE_INVALID);
+        }
     }
 }

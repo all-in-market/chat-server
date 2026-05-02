@@ -1,12 +1,15 @@
 package com.example.allinmarket.realtimechat.controller;
 
+import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.enums.SuccessEnum;
+import com.example.allinmarket.common.exception.BaseException;
 import com.example.allinmarket.common.response.ApiResponse;
 import com.example.allinmarket.common.security.UserPrincipal;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatHistoryResponse;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatRoomResponse;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatRoom;
 import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
+import com.example.allinmarket.realtimechat.facade.RealtimeChatRoomFacade;
 import com.example.allinmarket.realtimechat.service.RealtimeChatRoomService;
 import com.example.allinmarket.realtimechat.service.RealtimeChatService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ import java.util.List;
 public class RealtimeChatAPIController {
     private final RealtimeChatService chatService;
     private final RealtimeChatRoomService chatRoomService;
+    private final RealtimeChatRoomFacade chatRoomFacade;
 
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<ApiResponse<RealtimeChatHistoryResponse>> getChatHistory(
@@ -62,15 +66,18 @@ public class RealtimeChatAPIController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createRoom(
+            Principal principal,
             @RequestParam Long buyerId,
             @RequestParam Long sellerId
     ) {
-        RealtimeChatRoom chatRoom = chatRoomService.getOrCreateRoom(buyerId, sellerId);
+        UserPrincipal userPrincipal = (UserPrincipal) ((Authentication) principal).getPrincipal();
+
+        Long roomId = chatRoomFacade.createRoom(userPrincipal, buyerId, sellerId);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(
                         SuccessEnum.CREATE_SUCCESS,
-                        chatRoom.getId())
+                        roomId)
         );
     }
 }

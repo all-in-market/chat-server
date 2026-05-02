@@ -2,15 +2,12 @@ package com.example.allinmarket.realtimechat.service;
 
 import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.exception.BaseException;
-import com.example.allinmarket.common.redis.RedisPublisher;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatRoomResponse;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatParticipant;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatRoom;
 import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
-import com.example.allinmarket.realtimechat.repository.RealtimeChatMessageRepository;
 import com.example.allinmarket.realtimechat.repository.RealtimeChatParticipantRepository;
 import com.example.allinmarket.realtimechat.repository.RealtimeChatRoomRepository;
-import com.example.allinmarket.realtimechat.repository.RealtimeReadStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;

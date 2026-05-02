@@ -39,6 +39,10 @@ public class RealtimeReadStatus {
     }
 
     public void updateLastRead(Long messageId) {
-        this.lastReadMessageId = messageId;
+        if (messageId == null) return;
+
+        if (this.lastReadMessageId == null || messageId > this.lastReadMessageId) {
+            this.lastReadMessageId = messageId;
+        }
     }
 }

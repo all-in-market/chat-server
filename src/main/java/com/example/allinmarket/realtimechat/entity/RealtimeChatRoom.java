@@ -48,9 +48,4 @@ public class RealtimeChatRoom extends CreatableEntity {
         realtimeChatRoom.roomName = "chat-" + buyerId + "-" + sellerId;
         return realtimeChatRoom;
     }
-
-    public void updateLastMessage(String lastMessage, LocalDateTime lastMessageTime) {
-        this.lastMessage = lastMessage;
-        this.lastMessageTime = lastMessageTime;
-    }
 }

@@ -108,6 +108,6 @@ public class RealtimeChatService {
                 () -> new BaseException(ErrorEnum.CHAT_ROOM_NOT_FOUND)
         );
 
-        chatRoom.updateLastMessage(lastMessage, lastMessageTime);
+        chatRoomRepository.updateLastMessageIfNewer(roomId, lastMessage, lastMessageTime);
     }
 }

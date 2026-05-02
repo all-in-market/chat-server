@@ -20,6 +20,11 @@ public class RealtimeChatRoomFacade {
     }
 
     private void validateCreateRoom(UserPrincipal userPrincipal, Long buyerId, Long sellerId) {
+        // 자기 자신과 채팅 방지
+        if (buyerId.equals(sellerId)) {
+            throw new BaseException(ErrorEnum.INVALID_INPUT);
+        }
+
         Long userId = userPrincipal.userId();
 
         RealtimeChatSenderType senderType = userPrincipal.senderType();

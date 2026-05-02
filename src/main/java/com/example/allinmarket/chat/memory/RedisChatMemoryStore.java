@@ -1,6 +1,8 @@
 package com.example.allinmarket.chat.memory;
 
 import com.example.allinmarket.chat.consts.ChatConsts;
+import com.example.allinmarket.common.enums.ErrorEnum;
+import com.example.allinmarket.common.exception.BaseException;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.JacksonChatMessageJsonCodec;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
@@ -22,13 +24,16 @@ public class RedisChatMemoryStore implements ChatMemoryStore {
 
     @Override
     public List<ChatMessage> getMessages(Object memoryId) {
-        String json = redisTemplate.opsForValue().get(ChatConsts.MEMORY_KEY_PREFIX + memoryId);
+
+        try {
+        String json = redisTemplate.opsForValue().get(keyOf(memoryId));
 
         if(json == null) {
             return Collections.emptyList();
         }
-        try {
             return codec.messagesFromJson(json);
+        } catch (BaseException e) {
+            throw e;
         } catch (Exception e) {
             log.error("[ChatMemory] 메시지 역직렬화 실패 memoryId={}", memoryId, e);
             return Collections.emptyList();
@@ -39,14 +44,31 @@ public class RedisChatMemoryStore implements ChatMemoryStore {
     public void updateMessages(Object memoryId, List<ChatMessage> messages) {
         try {
             String json = codec.messagesToJson(messages);
-            redisTemplate.opsForValue().set(ChatConsts.MEMORY_KEY_PREFIX + memoryId, json, ChatConsts.MEMORY_TTL);
+            redisTemplate.opsForValue()
+                    .set(keyOf(memoryId), json, ChatConsts.MEMORY_TTL);
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("[ChatMemory] 메시지 직렬화 실패 memoryId={}", memoryId, e);
+            log.error("[ChatMemory] 메시지 저장 실패", e);
         }
     }
 
     @Override
     public void deleteMessages(Object memoryId) {
-        redisTemplate.delete(ChatConsts.MEMORY_KEY_PREFIX + memoryId);
+        try {
+            redisTemplate.delete(keyOf(memoryId));
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[ChatMemory] 메시지 삭제 실패", e);
+        }
+    }
+
+    private String keyOf(Object memoryId) {
+        String id = (memoryId == null) ? "" : memoryId.toString().trim();
+        if (id.isEmpty()) {
+            throw new BaseException(ErrorEnum.CHAT_MEMORY_ID_INVALID);
+        }
+        return ChatConsts.MEMORY_KEY_PREFIX + id;
     }
 }

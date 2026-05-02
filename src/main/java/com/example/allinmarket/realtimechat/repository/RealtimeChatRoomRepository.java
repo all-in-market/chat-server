@@ -24,7 +24,4 @@ public interface RealtimeChatRoomRepository extends JpaRepository<RealtimeChatRo
     int updateLastMessageIfNewer(@Param("roomId") Long roomId,
                                  @Param("lastMessage") String lastMessage,
                                  @Param("lastMessageTime")LocalDateTime lastMessageTime);
-
-    @Query("SELECT MAX(m.id) FROM RealtimeChatMessage m WHERE m.roomId = :roomId")
-    Long findLastMessageId(@Param("roomId") Long roomId);
 }

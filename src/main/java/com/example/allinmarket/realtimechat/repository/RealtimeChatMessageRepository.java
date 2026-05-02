@@ -18,4 +18,6 @@ public interface RealtimeChatMessageRepository extends JpaRepository<RealtimeCha
 
     @Query("SELECT COUNT(m) FROM RealtimeChatMessage m WHERE m.roomId = :roomId AND m.id > :lastReadMessageId")
     int countUnreadMessages(@Param("roomId") Long roomId, @Param("lastReadMessageId") Long lastReadMessageId);
+
+    boolean existsByIdAndRoomId(Long roomId, Long messageId);
 }

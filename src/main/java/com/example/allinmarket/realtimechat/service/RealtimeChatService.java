@@ -52,9 +52,9 @@ public class RealtimeChatService {
             throw new BaseException(ErrorEnum.INVALID_INPUT);
         }
 
-        Long lastMessageId = chatRoomRepository.findLastMessageId(roomId);
+        boolean exists = chatMessageRepository.existsByIdAndRoomId(roomId, messageId);
 
-        if (lastMessageId == null || messageId > lastMessageId) {
+        if (!exists) {
             throw new BaseException(ErrorEnum.INVALID_INPUT);
         }
 
@@ -66,12 +66,12 @@ public class RealtimeChatService {
 
         readStatusRepository.save(readStatus);
 
-        unreadService.resetUnread(roomId, userId);
-
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
+                        unreadService.resetUnread(roomId, userId);
+
                         redisPublisher.publishRead(
                                 roomId,
                                 new RealtimeReadDto(roomId, userId, messageId)

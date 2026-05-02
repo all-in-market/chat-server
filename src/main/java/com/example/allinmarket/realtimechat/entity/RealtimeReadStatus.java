@@ -8,16 +8,24 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "realtime_chat_read_status")
+@Table(
+        name = "realtime_chat_read_status",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"room_id", "user_id"})
+        }
+)
 public class RealtimeReadStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "room_id", nullable = false)
     private Long roomId;
 
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Column(name = "last_read_message_id", nullable = false)
     private Long lastReadMessageId;
 
     public static RealtimeReadStatus of(Long roomId, Long userId, Long lastReadMessageId) {

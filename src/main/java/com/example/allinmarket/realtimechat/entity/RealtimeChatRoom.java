@@ -2,6 +2,7 @@ package com.example.allinmarket.realtimechat.entity;
 
 import com.example.allinmarket.common.entity.CreatableEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Table(
         name = "realtime_chat_rooms",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"buyerId", "sellerId"})
+                @UniqueConstraint(columnNames = {"buyer_id", "seller_id"})
         }
 )
 public class RealtimeChatRoom extends CreatableEntity {
@@ -22,14 +23,20 @@ public class RealtimeChatRoom extends CreatableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "buyer_id", nullable = false)
     private Long buyerId;
 
+    @Column(name = "seller_id", nullable = false)
     private Long sellerId;
 
+    @NotBlank
+    @Column(name = "room_name", nullable = false)
     private String roomName;
 
+    @Column(name = "last_message")
     private String lastMessage;
 
+    @Column(name = "last_message_time")
     private LocalDateTime lastMessageTime;
 
     public static RealtimeChatRoom of(Long buyerId, Long sellerId) {

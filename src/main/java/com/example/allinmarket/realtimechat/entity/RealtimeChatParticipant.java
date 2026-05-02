@@ -8,12 +8,18 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "realtime_chat_participants")
+@Table(
+        name = "realtime_chat_participants",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"realtime_chat_room_id", "user_id"})
+        }
+)
 public class RealtimeChatParticipant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -15,10 +15,13 @@ public class RealtimeChatMessage extends CreatableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "room_id", nullable = false)
     private Long roomId;
 
+    @Column(name = "sender_id", nullable = false)
     private Long senderId;
 
+    @Column(name = "message", nullable = false, length = 3000)
     private String message;
 
     public static RealtimeChatMessage of (Long roomId, Long senderId, String message) {

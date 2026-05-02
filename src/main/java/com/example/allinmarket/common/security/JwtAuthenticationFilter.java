@@ -2,6 +2,7 @@ package com.example.allinmarket.common.security;
 
 import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.enums.UserRole;
+import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -40,9 +41,12 @@ public class JwtAuthenticationFilter implements WebFilter {
 
         Long userId = jwtProvider.getUserId(token);
         UserRole role = jwtProvider.getRole(token);
+        RealtimeChatSenderType senderType = RealtimeChatSenderType.valueOf(role.name());
+
+        UserPrincipal principal = new UserPrincipal(userId, senderType);
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                userId, null, List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))
+                principal, null, List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))
         );
 
         return chain.filter(exchange)

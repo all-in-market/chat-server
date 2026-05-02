@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 @Table(
         name = "realtime_chat_rooms",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"buyer_id", "seller_id"})
+                @UniqueConstraint(
+                        name = "uk_realtime_chat_room_buyer_seller",
+                        columnNames = {"buyer_id", "seller_id"})
         }
 )
 public class RealtimeChatRoom extends CreatableEntity {

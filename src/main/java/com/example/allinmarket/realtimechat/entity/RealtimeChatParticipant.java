@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "realtime_chat_participants",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"realtime_chat_room_id", "user_id"})
+                @UniqueConstraint(
+                        name = "uk_realtime_chat_participant_room_user",
+                        columnNames = {"realtime_chat_room_id", "user_id"})
         }
 )
 public class RealtimeChatParticipant {

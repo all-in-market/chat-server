@@ -54,12 +54,12 @@ public class RealtimeChatService {
 
         readStatusRepository.save(readStatus);
 
-        unreadService.resetUnread(roomId, userId);
-
         redisPublisher.publishRead(
                 roomId,
                 new RealtimeReadDto(roomId, userId, messageId)
         );
+
+        unreadService.resetUnread(roomId, userId);
     }
 
     public List<Long> getParticipantIds(Long roomId) {

@@ -55,22 +55,23 @@ public class RedisConfig {
     }
 
     @Bean // Redis 메세지 리스터 컨테이너 : Redis로부터 메세지를 받으면 실행
+    // 실제 메세지를 처리하는 어댑터 - RedisSubscriber 직접 연결
     public RedisMessageListenerContainer redisMessageListenerContainer(
             RedisConnectionFactory redisConnectionFactory,
-            MessageListenerAdapter messageListenerAdapter
+            RedisSubscriber redisSubscriber
     ) {
         RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
 
         redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);
 
-        redisMessageListenerContainer.addMessageListener(messageListenerAdapter, new PatternTopic("chat.room.*"));
-        redisMessageListenerContainer.addMessageListener(messageListenerAdapter, new PatternTopic("chat.read.*"));
+        redisMessageListenerContainer.addMessageListener(redisSubscriber::onMessage, new PatternTopic("chat.room.*"));
+        redisMessageListenerContainer.addMessageListener(redisSubscriber::onMessage, new PatternTopic("chat.read.*"));
 
         return redisMessageListenerContainer;
     }
 
-    @Bean // 실제 메세지를 처리하는 어댑터 (RedisSubscriber 서비스와 연결)
-    public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber) {
-        return new MessageListenerAdapter(redisSubscriber, "onMessage");
-    }
+//    @Bean
+//    public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber) {
+//        return new MessageListenerAdapter(redisSubscriber, "onMessage");
+//    }
 }

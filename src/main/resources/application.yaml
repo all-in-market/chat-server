@@ -1,4 +1,6 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
   application:
     name: all-in-market
   sql:
@@ -79,6 +81,3 @@ langchain4j:
     password: ${DB_PASSWORD}
     dimension: 1536
     create-table: false
-
-
-

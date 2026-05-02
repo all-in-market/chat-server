@@ -52,7 +52,6 @@ public class RedisSubscriber {
                 log.info("Redis 수신: channel = {}, roomId = {}", channel, roomIdFromChannel);
             }
 
-
         } catch (Exception e) {
             log.error("Redis 메세지 처리 실패", e);
         }

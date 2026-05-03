@@ -1,6 +1,8 @@
 package com.example.allinmarket.chat.rag;
 
 import com.example.allinmarket.chat.consts.ChatConsts;
+import com.example.allinmarket.chat.rag.entity.EmbeddingDocument;
+import com.example.allinmarket.chat.rag.repository.EmbeddingDocumentRepository;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -14,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -26,6 +25,7 @@ public class HybridContentRetriever implements ContentRetriever {
 
     private final EmbeddingStore<TextSegment> embeddingStore;
     private final EmbeddingModel embeddingModel;
+    private final EmbeddingDocumentRepository embeddingDocumentRepository;
 
     @Override
     public List<Content> retrieve(Query query) {
@@ -34,8 +34,8 @@ public class HybridContentRetriever implements ContentRetriever {
         // 1. Dense 검색 (벡터 유사도)
         List<EmbeddingMatch<TextSegment>> denseResults = denseSearch(queryText);
 
-        // 2. Sparse 검색 (키워드 LIKE)
-        List<EmbeddingMatch<TextSegment>> sparseResults = sparseSearch(queryText, denseResults);
+        // 2. Sparse 검색 (DB 직접 키워드 검색 - Dense와 독립적)
+        List<EmbeddingDocument> sparseResults = sparseSearch(queryText);
 
         // 3. RRF로 점수 결합
         List<TextSegment> reranked = reciprocalRankFusion(denseResults, sparseResults);
@@ -56,35 +56,27 @@ public class HybridContentRetriever implements ContentRetriever {
         return embeddingStore.search(request).matches();
     }
 
-    private List<EmbeddingMatch<TextSegment>> sparseSearch(
-            String queryText,
-            List<EmbeddingMatch<TextSegment>> denseResults) {
-        // Dense 결과에서 키워드 매칭으로 필터링 (LIKE 방식)
-        String lowerQuery = queryText.toLowerCase();
-        return denseResults.stream()
-                .filter(match -> {
-                    String content = match.embedded().text().toLowerCase();
-                    // 쿼리 단어 중 하나라도 포함되면 매칭
-                    String[] words = lowerQuery.split("\\s+");
-                    for (String word : words) {
-                        if (content.contains(word)) return true;
-                    }
-                    return false;
-                })
+    private List<EmbeddingDocument> sparseSearch(String queryText) {
+        // 쿼리 단어별로 검색 후 합산
+        String[] words = queryText.toLowerCase().split("\\s+");
+        return java.util.Arrays.stream(words)
+                .flatMap(word -> embeddingDocumentRepository.findByKeyword(word).stream())
+                .distinct()
+                .limit(ChatConsts.TOP_K)
                 .toList();
     }
 
     private List<TextSegment> reciprocalRankFusion(
             List<EmbeddingMatch<TextSegment>> denseResults,
-            List<EmbeddingMatch<TextSegment>> sparseResults) {
+            List<EmbeddingDocument> sparseResults) {
 
-        Map<String, Double> rrfScores = new HashMap<>();
-        Map<String, TextSegment> segmentMap = new HashMap<>();
+        Map<UUID, Double> rrfScores = new HashMap<>();
+        Map<UUID, TextSegment> segmentMap = new HashMap<>();
 
-        // Dense 결과에 RRF 점수 부여
+        // Dense 결과에 RRF 점수 부여 (embeddingId를 키로 사용)
         for (int i = 0; i < denseResults.size(); i++) {
             EmbeddingMatch<TextSegment> match = denseResults.get(i);
-            String key = match.embedded().text();
+            UUID key = UUID.fromString(match.embeddingId());
             double score = 1.0 / (ChatConsts.RRF_K + i + 1);
             rrfScores.merge(key, score, Double::sum);
             segmentMap.put(key, match.embedded());
@@ -92,11 +84,11 @@ public class HybridContentRetriever implements ContentRetriever {
 
         // Sparse 결과에 RRF 점수 부여
         for (int i = 0; i < sparseResults.size(); i++) {
-            EmbeddingMatch<TextSegment> match = sparseResults.get(i);
-            String key = match.embedded().text();
+            EmbeddingDocument doc = sparseResults.get(i);
+            UUID key = doc.getEmbeddingId();
             double score = 1.0 / (ChatConsts.RRF_K + i + 1);
             rrfScores.merge(key, score, Double::sum);
-            segmentMap.putIfAbsent(key, match.embedded());
+            segmentMap.putIfAbsent(key, TextSegment.from(doc.getText()));
         }
 
         // RRF 점수 기준 정렬 후 상위 FINAL_TOP_K 반환

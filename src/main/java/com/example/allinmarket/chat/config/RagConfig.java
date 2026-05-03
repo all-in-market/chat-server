@@ -1,5 +1,6 @@
 package com.example.allinmarket.chat.config;
 
+import com.example.allinmarket.chat.rag.HybridContentRetriever;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
@@ -31,20 +32,6 @@ public class RagConfig {
                 .password(password)
                 .table("langchain4j_embedding_store")
                 .dimension(dimension)
-                .build();
-    }
-
-    // 기본 RAG 설정
-    @Bean
-    public ContentRetriever contentRetriever(
-            EmbeddingStore<TextSegment> embeddingStore,
-            EmbeddingModel embeddingModel) {
-
-        return EmbeddingStoreContentRetriever.builder()
-                .embeddingStore(embeddingStore)
-                .embeddingModel(embeddingModel)
-                .maxResults(3)
-                .minScore(0.7)
                 .build();
     }
 }

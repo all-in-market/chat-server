@@ -14,4 +14,8 @@ public final class ChatConsts {
     // Chat Memory
     public static final String MEMORY_KEY_PREFIX = "chat:memory:";
     public static final Duration MEMORY_TTL = Duration.ofHours(24);
+
+    // Token Store
+    public static final String TOKEN_KEY_PREFIX = "chat:token:";
+    public static final Duration TOKEN_TTL = Duration.ofHours(1);
 }

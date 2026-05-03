@@ -4,6 +4,7 @@ import com.example.allinmarket.chat.assistant.AiAssistant;
 import com.example.allinmarket.chat.assistant.IntentClassifier;
 import com.example.allinmarket.chat.consts.ChatConsts;
 import com.example.allinmarket.chat.dto.ChatRequest;
+import com.example.allinmarket.chat.security.TokenStore;
 import com.example.allinmarket.chat.service.ModerationService;
 import com.example.allinmarket.common.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class ChatController {
     private final AiAssistant aiAssistant;
     private final IntentClassifier intentClassifier;
     private final ModerationService moderationService;
+    private final TokenStore tokenStore;
 
     @PostMapping(
             value = "/stream",
@@ -38,17 +40,20 @@ public class ChatController {
                         return Flux.just("[부적절한 내용이 포함되어 있어 답변할 수 없습니다.]");
                     }
                     return SecurityUtils.getCurrentUserId()
-                            .flatMapMany(userId ->
-                                    Mono.fromCallable(() -> intentClassifier.classify(request.message()))
-                                            .subscribeOn(Schedulers.boundedElastic())
-                                            .flatMapMany(intent -> {
-                                                if (ChatConsts.SMALL_TALK.equals(intent)) {
-                                                    return aiAssistant.smallTalk(userId, request.message());
-                                                }
-                                                return aiAssistant.chat(userId, request.message(), token);
-                                            })
-                            );
+                            .flatMapMany(userId -> {
+                                tokenStore.save(userId, token);
+                                return Mono.fromCallable(() -> intentClassifier.classify(request.message()))
+                                        .subscribeOn(Schedulers.boundedElastic())
+                                        .flatMapMany(intent -> {
+                                            if (ChatConsts.SMALL_TALK.equals(intent)) {
+                                                return aiAssistant.smallTalk(userId, request.message());
+                                            }
+                                            return aiAssistant.chat(userId, request.message());
+                                        });
+                            });
                 })
+                .doFinally(signal -> SecurityUtils.getCurrentUserId()
+                        .subscribe(userId -> tokenStore.delete(userId)))
                 .doOnError(e -> log.error("[Chat] 스트리밍 오류: {}", e.getMessage()))
                 .onErrorResume(e -> Flux.just("[오류가 발생했습니다. 다시 시도해주세요.]"))
                 .doOnCancel(() -> log.info("[Chat] 클라이언트 연결 끊김"));

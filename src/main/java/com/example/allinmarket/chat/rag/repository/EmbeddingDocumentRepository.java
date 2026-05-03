@@ -12,7 +12,7 @@ public interface EmbeddingDocumentRepository extends JpaRepository<EmbeddingDocu
 
     @Query("""
             SELECT e FROM EmbeddingDocument e
-            WHERE e.text LIKE %:keyword%
+            WHERE LOWER(e.text) LIKE CONCAT('%', LOWER(:keyword), '%')
             """)
     List<EmbeddingDocument> findByKeyword(@Param("keyword") String keyword);
 }

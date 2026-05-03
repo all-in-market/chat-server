@@ -15,6 +15,7 @@ import dev.langchain4j.store.embedding.EmbeddingStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -57,11 +58,20 @@ public class HybridContentRetriever implements ContentRetriever {
     }
 
     private List<EmbeddingDocument> sparseSearch(String queryText) {
-        // 쿼리 단어별로 검색 후 합산
-        String[] words = queryText.toLowerCase().split("\\s+");
+        if(!StringUtils.hasText(queryText)) {
+            return List.of();
+        }
+        String[] words = queryText.trim().toLowerCase().split("\\s+");
+
         return java.util.Arrays.stream(words)
+                .filter(word -> !word.isBlank())
                 .flatMap(word -> embeddingDocumentRepository.findByKeyword(word).stream())
-                .distinct()
+                .collect(java.util.stream.Collectors.toMap(
+                        EmbeddingDocument::getEmbeddingId,
+                        doc -> doc,
+                        (first, second) -> first, java.util.LinkedHashMap::new))
+                .values()
+                .stream()
                 .limit(ChatConsts.TOP_K)
                 .toList();
     }

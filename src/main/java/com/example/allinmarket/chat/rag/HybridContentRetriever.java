@@ -90,7 +90,11 @@ public class HybridContentRetriever implements ContentRetriever {
         // Dense 결과에 RRF 점수 부여 (embeddingId를 키로 사용)
         for (int i = 0; i < denseResults.size(); i++) {
             EmbeddingMatch<TextSegment> match = denseResults.get(i);
-            UUID key = UUID.fromString(match.embeddingId());
+            UUID key = parseUuidOrNull(match.embeddingId());
+            if (key == null) {
+                log.warn("[HybridSearch] 유효하지 않은 embeddingId로 Dense 결과 건너뜀: {}", match.embeddingId());
+                continue;
+            }
             double score = 1.0 / (ChatConsts.RRF_K + i + 1);
             rrfScores.merge(key, score, Double::sum);
             segmentMap.put(key, match.embedded());
@@ -111,5 +115,14 @@ public class HybridContentRetriever implements ContentRetriever {
                 .limit(ChatConsts.FINAL_TOP_K)
                 .map(entry -> segmentMap.get(entry.getKey()))
                 .toList();
+    }
+
+    private UUID parseUuidOrNull(String raw) {
+        if (!StringUtils.hasText(raw)) return null;
+        try {
+            return UUID.fromString(raw);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }

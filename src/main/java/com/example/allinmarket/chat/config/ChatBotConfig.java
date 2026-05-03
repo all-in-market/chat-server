@@ -15,10 +15,13 @@ public class ChatBotConfig {
 
     @Bean
     public ChatMemoryProvider chatMemoryProvider() {
-        return memoryId -> MessageWindowChatMemory.builder()
-                .id(memoryId)
-                .maxMessages(10)
-                .chatMemoryStore(redisChatMemoryStore)
-                .build();
+        return memoryId -> {
+            String userId = memoryId.toString().split(":")[0];
+            return MessageWindowChatMemory.builder()
+                    .id(userId)
+                    .maxMessages(10)
+                    .chatMemoryStore(redisChatMemoryStore)
+                    .build();
+        };
     }
 }

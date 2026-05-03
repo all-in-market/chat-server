@@ -15,23 +15,23 @@ public class ChatTools {
     private final TokenStore tokenStore;
 
     @Tool("사용자의 주문 목록을 조회합니다.")
-    public String getOrders(@ToolMemoryId Long userId) {
-        return apiServerClient.getOrders(tokenStore.get(userId));
+    public String getOrders(@ToolMemoryId String sessionKey) {
+        return apiServerClient.getOrders(tokenStore.get(sessionKey));
     }
 
     @Tool("특정 주문의 상세 정보를 조회합니다.")
-    public String getOrder(@ToolMemoryId Long userId, Long orderId) {
-        return apiServerClient.getOrder(tokenStore.get(userId), orderId);
+    public String getOrder(@ToolMemoryId String sessionKey, Long orderId) {
+        return apiServerClient.getOrder(tokenStore.get(sessionKey), orderId);
     }
 
     @Tool("키워드로 상품을 검색합니다.")
-    public String searchProducts(@ToolMemoryId Long userId, String keyword) {
-        return apiServerClient.getProducts(tokenStore.get(userId), keyword);
+    public String searchProducts(@ToolMemoryId String sessionKey, String keyword) {
+        return apiServerClient.getProducts(tokenStore.get(sessionKey), keyword);
     }
 
     @Tool("특정 상품의 상세 정보를 조회합니다.")
-    public String getProduct(@ToolMemoryId Long userId, Long productId) {
-        return apiServerClient.getProduct(tokenStore.get(userId), productId);
+    public String getProduct(@ToolMemoryId String sessionKey, Long productId) {
+        return apiServerClient.getProduct(tokenStore.get(sessionKey), productId);
     }
 
     @Tool("""
@@ -43,7 +43,7 @@ public class ChatTools {
             - PAYMENT_AMOUNT_MISMATCH: 주문 금액과 실결제 금액이 상이
             description은 추가 설명 (선택사항)
             """)
-    public String createRefund(@ToolMemoryId Long userId, Long orderId, String reason, String description) {
-        return apiServerClient.createRefund(tokenStore.get(userId), orderId, reason, description);
+    public String createRefund(@ToolMemoryId String sessionKey, Long orderId, String reason, String description) {
+        return apiServerClient.createRefund(tokenStore.get(sessionKey), orderId, reason, description);
     }
 }

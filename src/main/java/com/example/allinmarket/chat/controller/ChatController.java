@@ -15,6 +15,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -41,19 +43,19 @@ public class ChatController {
                     }
                     return SecurityUtils.getCurrentUserId()
                             .flatMapMany(userId -> {
-                                tokenStore.save(userId, token);
+                                String sessionKey = userId + ":" + UUID.randomUUID();
+                                tokenStore.save(sessionKey, token);
                                 return Mono.fromCallable(() -> intentClassifier.classify(request.message()))
                                         .subscribeOn(Schedulers.boundedElastic())
                                         .flatMapMany(intent -> {
                                             if (ChatConsts.SMALL_TALK.equals(intent)) {
-                                                return aiAssistant.smallTalk(userId, request.message());
+                                                return aiAssistant.smallTalk(sessionKey, request.message());
                                             }
-                                            return aiAssistant.chat(userId, request.message());
-                                        });
+                                            return aiAssistant.chat(sessionKey, request.message());
+                                        })
+                                        .doFinally(signalType -> tokenStore.delete(sessionKey));
                             });
                 })
-                .doFinally(signal -> SecurityUtils.getCurrentUserId()
-                        .subscribe(userId -> tokenStore.delete(userId)))
                 .doOnError(e -> log.error("[Chat] 스트리밍 오류: {}", e.getMessage()))
                 .onErrorResume(e -> Flux.just("[오류가 발생했습니다. 다시 시도해주세요.]"))
                 .doOnCancel(() -> log.info("[Chat] 클라이언트 연결 끊김"));

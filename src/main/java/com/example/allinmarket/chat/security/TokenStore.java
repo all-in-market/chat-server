@@ -15,20 +15,20 @@ public class TokenStore {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    public void save(Long userId, String token) {
+    public void save(String sessionKey, String token) {
         try {
             stringRedisTemplate.opsForValue()
-                    .set(ChatConsts.TOKEN_KEY_PREFIX + userId, token, ChatConsts.TOKEN_TTL);
+                    .set(ChatConsts.TOKEN_KEY_PREFIX + sessionKey, token, ChatConsts.TOKEN_TTL);
         } catch (Exception e) {
             log.error("[TokenStore] 토큰 저장 실패", e);
             throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
         }
     }
 
-    public String get(Long userId) {
+    public String get(String sessionKey) {
         try {
             String token = stringRedisTemplate.opsForValue()
-                    .get(ChatConsts.TOKEN_KEY_PREFIX + userId);
+                    .get(ChatConsts.TOKEN_KEY_PREFIX + sessionKey);
             if (token == null) {
                 throw new BaseException(ErrorEnum.TOKEN_INVALID);
             }
@@ -41,9 +41,9 @@ public class TokenStore {
         }
     }
 
-    public void delete(Long userId) {
+    public void delete(String sessionKey) {
         try {
-            stringRedisTemplate.delete(ChatConsts.TOKEN_KEY_PREFIX + userId);
+            stringRedisTemplate.delete(ChatConsts.TOKEN_KEY_PREFIX + sessionKey);
         } catch (Exception e) {
             log.error("[TokenStore] 토큰 삭제 실패", e);
         }

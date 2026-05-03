@@ -32,6 +32,10 @@ public class HybridContentRetriever implements ContentRetriever {
     public List<Content> retrieve(Query query) {
         String queryText = query.text();
 
+        if (!StringUtils.hasText(queryText)) {
+            return List.of();
+        }
+
         // 1. Dense 검색 (벡터 유사도)
         List<EmbeddingMatch<TextSegment>> denseResults = denseSearch(queryText);
 

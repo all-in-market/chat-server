@@ -10,12 +10,16 @@ import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
@@ -74,6 +78,15 @@ public class ChatController {
                     emitter.completeWithError(e);
                 })
                 .start();
+
+        emitter.onTimeout(() -> {
+            log.info("[Chat] SSE 타임아웃");
+            emitter.complete();
+        });
+
+        emitter.onCompletion(() ->
+                log.info("[Chat] SSE 연결 종료")
+        );
 
         return emitter;
     }

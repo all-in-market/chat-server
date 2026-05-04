@@ -24,7 +24,7 @@ public class ModerationService {
             return flagged;
         } catch (Exception e) {
             log.error("[Moderation] 검사 실패", e);
-            return false;
+            return true;
         }
     }
 }

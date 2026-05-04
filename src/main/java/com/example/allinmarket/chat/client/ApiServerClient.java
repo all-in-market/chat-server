@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 @Slf4j
 @Component
@@ -28,8 +29,13 @@ public class ApiServerClient {
                     .retrieve()
                     .body(String.class);
         } catch (HttpClientErrorException e) {
+            log.warn("[API 서버] 클라이언트 오류: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INVALID_INPUT);
         } catch (HttpServerErrorException e) {
+            log.error("[API 서버] 서버 오류: {}", e.getMessage());
+            throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
+        } catch(RestClientException e) {
+            log.error("[API 서버] 연결 실패: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
         }
     }
@@ -43,8 +49,13 @@ public class ApiServerClient {
                     .retrieve()
                     .body(String.class);
         } catch (HttpClientErrorException e) {
+            log.warn("[API 서버] 클라이언트 오류: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INVALID_INPUT);
         } catch (HttpServerErrorException e) {
+            log.error("[API 서버] 서버 오류: {}", e.getMessage());
+            throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
+        } catch(RestClientException e) {
+            log.error("[API 서버] 연결 실패: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
         }
     }
@@ -60,8 +71,13 @@ public class ApiServerClient {
                     .retrieve()
                     .body(String.class);
         } catch (HttpClientErrorException e) {
+            log.warn("[API 서버] 클라이언트 오류: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INVALID_INPUT);
         } catch (HttpServerErrorException e) {
+            log.error("[API 서버] 서버 오류: {}", e.getMessage());
+            throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
+        } catch(RestClientException e) {
+            log.error("[API 서버] 연결 실패: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
         }
     }
@@ -75,8 +91,13 @@ public class ApiServerClient {
                     .retrieve()
                     .body(String.class);
         } catch (HttpClientErrorException e) {
+            log.warn("[API 서버] 클라이언트 오류: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INVALID_INPUT);
         } catch (HttpServerErrorException e) {
+            log.error("[API 서버] 서버 오류: {}", e.getMessage());
+            throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
+        } catch(RestClientException e) {
+            log.error("[API 서버] 연결 실패: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
         }
     }
@@ -99,8 +120,13 @@ public class ApiServerClient {
                     .retrieve()
                     .body(String.class);
         } catch (HttpClientErrorException e) {
+            log.warn("[API 서버] 클라이언트 오류: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INVALID_INPUT);
         } catch (HttpServerErrorException e) {
+            log.error("[API 서버] 서버 오류: {}", e.getMessage());
+            throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
+        } catch(RestClientException e) {
+            log.error("[API 서버] 연결 실패: {}", e.getMessage());
             throw new BaseException(ErrorEnum.INTERNAL_SERVER_ERROR);
         }
     }

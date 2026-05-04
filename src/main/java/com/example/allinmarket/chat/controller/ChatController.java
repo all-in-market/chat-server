@@ -6,6 +6,7 @@ import com.example.allinmarket.chat.consts.ChatConsts;
 import com.example.allinmarket.chat.dto.ChatRequest;
 import com.example.allinmarket.chat.service.ModerationService;
 import com.example.allinmarket.common.security.SecurityUtils;
+import dev.langchain4j.model.chat.response.StreamingHandle;
 import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @RestController
@@ -58,12 +60,16 @@ public class ChatController {
                 ? aiAssistant.smallTalk(userId, request.message())
                 : aiAssistant.chat(userId, request.message(), token);
 
+        AtomicReference<StreamingHandle> handleRef = new AtomicReference<>();
+
         tokenStream
-                .onPartialResponse(chunk -> {
+                .onPartialResponseWithContext((chunk, context) -> {
+                    handleRef.set(context.streamingHandle());
                     try {
-                        emitter.send(chunk);
+                        emitter.send(chunk.text());
                     } catch (Exception e) {
                         log.error("[Chat] 스트리밍 전송 오류", e);
+                        context.streamingHandle().cancel();
                         emitter.completeWithError(e);
                     }
                 })
@@ -88,6 +94,50 @@ public class ChatController {
                 log.info("[Chat] SSE 연결 종료")
         );
 
+        emitter.onError(e -> {
+            log.error("[Chat] SSE 오류", e);
+            StreamingHandle handle = handleRef.get();
+            if (handle != null) handle.cancel();
+        });
+
         return emitter;
+    }
+
+    @PostMapping(value = "/evaluate", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> evaluate(
+            @RequestBody ChatRequest request,
+            @RequestHeader("Authorization") String token) {
+
+        if (moderationService.isFlagged(request.message())) {
+            return ResponseEntity.ok("[부적절한 내용이 포함되어 있어 답변할 수 없습니다.]");
+        }
+
+        Long userId = SecurityUtils.getCurrentUserId();
+        String intent = intentClassifier.classify(request.message());
+
+        StringBuilder sb = new StringBuilder();
+
+        TokenStream tokenStream = ChatConsts.SMALL_TALK.equals(intent)
+                ? aiAssistant.smallTalk(userId, request.message())
+                : aiAssistant.chat(userId, request.message(), token);
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        tokenStream
+                .onPartialResponse(sb::append)
+                .onCompleteResponse(response -> latch.countDown())
+                .onError(e -> {
+                    log.error("[Evaluate] 오류: {}", e.getMessage());
+                    latch.countDown();
+                })
+                .start();
+
+        try {
+            latch.await(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        return ResponseEntity.ok(sb.toString());
     }
 }

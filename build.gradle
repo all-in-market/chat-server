@@ -23,7 +23,7 @@ dependencies {
     testImplementation platform('org.testcontainers:testcontainers-bom:1.21.3')
 
     // Web
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
     // Security & JWT
@@ -67,7 +67,6 @@ dependencies {
     // LangChain4j - Spring Boot 4용 스타터
     implementation 'dev.langchain4j:langchain4j-open-ai-spring-boot4-starter:1.13.0-beta23'
     implementation 'dev.langchain4j:langchain4j-spring-boot4-starter:1.13.0-beta23'
-    implementation 'dev.langchain4j:langchain4j-reactor:1.13.0-beta23'
 
     // pgvector
     implementation 'dev.langchain4j:langchain4j-pgvector:1.13.0-beta23'

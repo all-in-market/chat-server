@@ -153,11 +153,16 @@ public class RealtimeChatFacade {
     private void sendAck(Long userId, String tempId, String status) {
         if (tempId == null) return;
 
-        messageSendingOperations.convertAndSendToUser(
-                userId.toString(),
-                "/sub/chat/status",
-                Map.of("tempId", tempId, "status", status)
-        );
+        try {
+            messageSendingOperations.convertAndSendToUser(
+                    userId.toString(),
+                    "/sub/chat/status",
+                    Map.of("tempId", tempId, "status", status)
+            );
+
+        } catch (Exception e) {
+            log.error("ACK 전송 실패 userId={}, tempId={}, status={}", userId, tempId, status, e);
+        }
     }
 
     private void afterCommit(Runnable task) {

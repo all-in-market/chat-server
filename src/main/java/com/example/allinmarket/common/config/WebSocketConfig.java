@@ -2,6 +2,7 @@ package com.example.allinmarket.common.config;
 
 import com.example.allinmarket.common.security.JwtChannelInterceptor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -9,6 +10,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+@Slf4j
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
@@ -28,12 +30,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry stompEndpointRegistry) {
         // 웹소켓 연결 엔드포인트 : ws://localhost:8080/ws-chat
         stompEndpointRegistry.addEndpoint("/ws-chat")
-                .setAllowedOriginPatterns("*") // 테스트용 모든 도메인 허용
-                .withSockJS(); // 낮은 버전 브라우저 지원
+                .setAllowedOriginPatterns("*"); // 테스트용 모든 도메인 허용
+
     }
 
     @Override // 인터셉터 등록 로직
     public void configureClientInboundChannel(ChannelRegistration channelRegistration) {
+        log.info("인터셉터 등록 확인");
         channelRegistration.interceptors(jwtChannelInterceptor);
     }
 }

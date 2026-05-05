@@ -75,7 +75,7 @@ public class JwtProvider {
     }
 
     public RealtimeChatSenderType getSenderType(String token) {
-        String senderType = getClaims(token).get("senderType", String.class);
+        String senderType = getRole(token).toString();
 
         if (senderType == null) {
             log.warn("토큰에서 senderType을 확인할 수 없습니다.");

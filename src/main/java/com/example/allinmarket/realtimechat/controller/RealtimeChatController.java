@@ -25,11 +25,7 @@ public class RealtimeChatController {
     public void message(RealtimeChatMessageDto dto, Principal principal) {
         UserPrincipal userPrincipal = (UserPrincipal) ((Authentication) principal).getPrincipal();
 
-        Long userId = userPrincipal.userId();
-
-        RealtimeChatSenderType senderType = userPrincipal.senderType();
-
-        chatFacade.handleMessage(dto, userId, senderType);
+        chatFacade.handleMessage(dto, userPrincipal);
     }
 
     @MessageMapping("/chat/read")

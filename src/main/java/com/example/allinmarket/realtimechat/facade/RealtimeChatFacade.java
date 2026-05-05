@@ -2,6 +2,7 @@ package com.example.allinmarket.realtimechat.facade;
 
 import com.example.allinmarket.common.exception.BaseException;
 import com.example.allinmarket.common.redis.RedisPublisher;
+import com.example.allinmarket.common.security.UserPrincipal;
 import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
 import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
 import com.example.allinmarket.realtimechat.enums.RealtimeChatMessageType;
@@ -111,33 +112,33 @@ public class RealtimeChatFacade {
     }
 
     @Transactional
-    public void handleMessage(RealtimeChatMessageDto dto, Long userId, RealtimeChatSenderType senderType) {
+    public void handleMessage(RealtimeChatMessageDto dto, UserPrincipal userPrincipal) {
         try {
-            chatService.validateParticipant(dto.roomId(), userId);
+            chatService.validateParticipant(dto.roomId(), userPrincipal.userId());
 
             if (RealtimeChatMessageType.ENTER.equals(dto.type())) {
-                enterRoom(dto, userId, senderType);
+                enterRoom(dto, userPrincipal.userId(), userPrincipal.senderType());
             } else {
-                sendMessage(dto, userId, senderType);
+                sendMessage(dto, userPrincipal.userId(), userPrincipal.senderType());
             }
 
             TransactionSynchronizationManager.registerSynchronization(
                     new TransactionSynchronization() {
                         @Override
                         public void afterCommit() {
-                            sendAck(userId, dto.tempId(), "SUCCESS");
+                            sendAck(userPrincipal.userId(), dto.tempId(), "SUCCESS");
                         }
                     }
             );
 
         } catch (BaseException e) {
             log.error("채팅 처리 중 비즈니스 예외 발생: {}", e.getMessage());
-            sendAck(userId, dto.tempId(), "ERROR_" + e.getErrorEnum());
+            sendAck(userPrincipal.userId(), dto.tempId(), "ERROR_" + e.getErrorEnum());
             throw e;
 
         } catch (Exception e) {
             log.error("시스템 장애로 인한 채팅 전송 실패", e);
-            sendAck(userId, dto.tempId(), "SYSTEM_ERROR");
+            sendAck(userPrincipal.userId(), dto.tempId(), "SYSTEM_ERROR");
             throw e;
         }
     }

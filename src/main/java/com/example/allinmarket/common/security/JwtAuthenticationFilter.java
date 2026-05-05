@@ -2,6 +2,7 @@ package com.example.allinmarket.common.security;
 
 import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.enums.UserRole;
+import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,10 +39,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Long userId = jwtProvider.getUserId(token);
             UserRole role = jwtProvider.getRole(token);
+            RealtimeChatSenderType senderType = RealtimeChatSenderType.valueOf(role.name());
+
+            UserPrincipal userPrincipal = new UserPrincipal(userId, senderType);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
-                            userId, null,
+                            userPrincipal, null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))
                     );
             SecurityContextHolder.getContext().setAuthentication(authentication);

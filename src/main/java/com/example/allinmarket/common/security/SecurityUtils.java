@@ -12,12 +12,19 @@ public class SecurityUtils {
 
     public static Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         if (authentication == null
                 || !authentication.isAuthenticated()
-                || authentication instanceof AnonymousAuthenticationToken
-                || !(authentication.getPrincipal() instanceof Long userId)) {
+                || authentication instanceof AnonymousAuthenticationToken) {
             throw new BaseException(ErrorEnum.UNAUTHORIZED);
         }
-        return userId;
+
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof UserPrincipal userPrincipal)) {
+            throw new BaseException(ErrorEnum.UNAUTHORIZED);
+        }
+
+        return userPrincipal.userId();
     }
 }

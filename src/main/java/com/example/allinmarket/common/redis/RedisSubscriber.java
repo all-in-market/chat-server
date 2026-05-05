@@ -10,6 +10,8 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -21,8 +23,10 @@ public class RedisSubscriber {
         try {
             String channel = new String(message.getChannel());
 
+            String json = new String(message.getBody(), StandardCharsets.UTF_8);
+
             if (channel.startsWith("chat.room.")) {
-                RealtimeChatMessageDto dto = objectMapper.readValue(message.getBody(), RealtimeChatMessageDto.class);
+                RealtimeChatMessageDto dto = objectMapper.readValue(json, RealtimeChatMessageDto.class);
 
                 Long roomIdFromChannel = extractRoomId(channel, "chat.room.");
 
@@ -38,7 +42,7 @@ public class RedisSubscriber {
             }
 
             if (channel.startsWith("chat.read.")) {
-                RealtimeReadDto dto = objectMapper.readValue(message.getBody(), RealtimeReadDto.class);
+                RealtimeReadDto dto = objectMapper.readValue(json, RealtimeReadDto.class);
 
                 Long roomIdFromChannel = extractRoomId(channel, "chat.read.");
 

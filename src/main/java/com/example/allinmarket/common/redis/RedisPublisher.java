@@ -1,5 +1,8 @@
 package com.example.allinmarket.common.redis;
 
+import com.example.allinmarket.common.enums.ErrorEnum;
+import com.example.allinmarket.common.exception.BaseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,21 +16,37 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class RedisPublisher {
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper objectMapper;
 
     // 채팅 메세지를 Redis Pun/Sub으로 발행
     // 모든 서버 인스턴스에게 메세지 전달
     @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 5000))
     public void publish(Long roomId, Object message) {
-        String topic = "chat.room." + roomId;
+        try {
+            String topic = "chat.room." + roomId;
 
-        redisTemplate.convertAndSend(topic, message);
+            String json = objectMapper.writeValueAsString(message);
+
+            redisTemplate.convertAndSend(topic, json);
+
+        } catch (Exception e) {
+            throw new BaseException(ErrorEnum.REDIS_PUBLISH_FAILED);
+        }
+
     }
 
     public void publishRead(Long roomId, Object message) {
-        String topic = "chat.read." + roomId;
+        try {
+            String topic = "chat.read." + roomId;
 
-        redisTemplate.convertAndSend(topic, message);
+            String json = objectMapper.writeValueAsString(message);
+
+            redisTemplate.convertAndSend(topic, json);
+
+        } catch (Exception e) {
+            throw new BaseException(ErrorEnum.REDIS_PUBLISH_READ_FAILED);
+        }
     }
 
     @Recover // 재시도 실패 시 최종 실행 되는 로직

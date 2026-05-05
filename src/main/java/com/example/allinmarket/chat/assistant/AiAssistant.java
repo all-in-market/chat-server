@@ -1,11 +1,7 @@
 package com.example.allinmarket.chat.assistant;
 
-import dev.langchain4j.service.MemoryId;
-import dev.langchain4j.service.SystemMessage;
-import dev.langchain4j.service.UserMessage;
-import dev.langchain4j.service.V;
+import dev.langchain4j.service.*;
 import dev.langchain4j.service.spring.AiService;
-import reactor.core.publisher.Flux;
 
 @AiService
 public interface AiAssistant {
@@ -29,7 +25,7 @@ public interface AiAssistant {
             - 사용자에게 token을 물어보지 마세요.
             - token 값: {{token}}
             """)
-    Flux<String> chat(@MemoryId Long userId, @UserMessage String message, @V("token") String token);
+    TokenStream chat(@MemoryId Long userId, @UserMessage String message, @V("token") String token);
 
     @SystemMessage("""
             당신은 친절한 AI 어시스턴트입니다.
@@ -37,5 +33,5 @@ public interface AiAssistant {
             욕설, 비하, 혐오 표현이 포함된 메시지는 정중하게 거절하세요.
             부적절한 내용에는 답변하지 마세요.
             """)
-    Flux<String> smallTalk(@MemoryId Long userId, @UserMessage String message);
+    TokenStream  smallTalk(@MemoryId Long userId, @UserMessage String message);
 }

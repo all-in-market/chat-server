@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserRole role = jwtProvider.getRole(token);
             RealtimeChatSenderType senderType = RealtimeChatSenderType.valueOf(role.name());
 
-            UserPrincipal userPrincipal = new UserPrincipal(userId, senderType);
+            UserPrincipal userPrincipal = new UserPrincipal(userId, senderType, token);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(

@@ -15,6 +15,10 @@ public class SecurityUtils {
         return getUserPrincipal().userId();
     }
 
+    public static String getCurrentToken() {
+        return "Bearer " + getUserPrincipal().token();
+    }
+
     public static RealtimeChatSenderType getCurrentSenderType() {
         return getUserPrincipal().senderType();
     }

@@ -1,6 +1,7 @@
 package com.example.allinmarket.chat.tool;
 
 import com.example.allinmarket.chat.client.ApiServerClient;
+import com.example.allinmarket.common.security.SecurityUtils;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -12,23 +13,23 @@ public class ChatTools {
     private final ApiServerClient apiServerClient;
 
     @Tool("사용자의 주문 목록을 조회합니다.")
-    public String getOrders(String token) {
-        return apiServerClient.getOrders(token);
+    public String getOrders() {
+        return apiServerClient.getOrders(SecurityUtils.getCurrentToken());
     }
 
     @Tool("특정 주문의 상세 정보를 조회합니다.")
-    public String getOrder(String token, Long orderId) {
-        return apiServerClient.getOrder(token, orderId);
+    public String getOrder(Long orderId) {
+        return apiServerClient.getOrder(SecurityUtils.getCurrentToken(), orderId);
     }
 
     @Tool("키워드로 상품을 검색합니다.")
-    public String searchProducts(String token, String keyword) {
-        return apiServerClient.getProducts(token, keyword);
+    public String searchProducts(String keyword) {
+        return apiServerClient.getProducts(SecurityUtils.getCurrentToken(), keyword);
     }
 
     @Tool("특정 상품의 상세 정보를 조회합니다.")
-    public String getProduct(String token, Long productId) {
-        return apiServerClient.getProduct(token, productId);
+    public String getProduct(Long productId) {
+        return apiServerClient.getProduct(SecurityUtils.getCurrentToken(), productId);
     }
 
     @Tool("""
@@ -40,7 +41,7 @@ public class ChatTools {
             - PAYMENT_AMOUNT_MISMATCH: 주문 금액과 실결제 금액이 상이
             description은 추가 설명 (선택사항)
             """)
-    public String createRefund(String token, Long orderId, String reason, String description) {
-        return apiServerClient.createRefund(token, orderId, reason, description);
+    public String createRefund(Long orderId, String reason, String description) {
+        return apiServerClient.createRefund(SecurityUtils.getCurrentToken(), orderId, reason, description);
     }
 }

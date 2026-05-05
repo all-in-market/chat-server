@@ -23,6 +23,7 @@ public class HybridContentRetriever implements ContentRetriever{
     public List<Content> retrieve(Query query) {
         // 1. 벡터 검색
         List<Content> vectorResults = vectorContentRetriever.retrieve(query);
+
         // 2. 키워드 검색
         List<Content> keywordResults = keywordContentRetriever.retrieve(query);
 
@@ -35,16 +36,16 @@ public class HybridContentRetriever implements ContentRetriever{
         // 벡터 검색 결과 점수 부여
         for (int i = 0; i < vectorResults.size(); i++) {
             Content content = vectorResults.get(i);
-            String key = content.textSegment().text();
+            String key = getKey(content);
             double score = 1.0 / (ChatConsts.RRF_K + i + 1);
             rrfScores.merge(key, score, Double::sum);
             contentMap.put(key, content);
         }
 
-        // 키워드 검색 결과 점수 부여
+// 키워드 검색 결과 점수 부여
         for (int i = 0; i < keywordResults.size(); i++) {
             Content content = keywordResults.get(i);
-            String key = content.textSegment().text();
+            String key = getKey(content);
             double score = 1.0 / (ChatConsts.RRF_K + i + 1);
             rrfScores.merge(key, score, Double::sum);
             contentMap.put(key, content);
@@ -59,5 +60,11 @@ public class HybridContentRetriever implements ContentRetriever{
 
         log.debug("[Hybrid] 최종 결과: {}개", result.size());
         return result;
+    }
+
+    private String getKey(Content content) {
+        String embeddingId = content.textSegment().metadata().getString("embedding_id");
+
+        return embeddingId != null ? embeddingId : content.textSegment().text();
     }
 }

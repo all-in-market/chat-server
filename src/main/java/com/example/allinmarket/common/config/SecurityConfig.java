@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/ws-chat/**").permitAll()
                         .requestMatchers("/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories").permitAll()
                         .requestMatchers("/seller/auth/**").permitAll()

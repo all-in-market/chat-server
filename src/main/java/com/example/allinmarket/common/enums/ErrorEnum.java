@@ -95,8 +95,19 @@ public enum ErrorEnum {
     // RAG
     DOCUMENT_LOAD_FAILED(500, "문서 로드에 실패했습니다."),
 
+    // Chat
+    CHAT_ROOM_FORBIDDEN(403, "해당 채팅방에 대한 접근 권한이 없습니다."),
+    CHAT_ROOM_NOT_FOUND(404, "채팅방이 존재하지 않습니다."),
+    CHAT_ROOM_ALREADY_EXISTS(409, "채팅방이 이미 존재 합니다."),
+    SENDER_TYPE_INVALID(400, "잘못된 SENDER_TYPE 입니다."),
+    MESSAGE_TYPE_INVALID(400, "잘못된 MESSAGE_TYPE 입니다."),
+
     // Chat Memory
-    CHAT_MEMORY_ID_INVALID(400, "유효하지 않은 메모리 ID입니다.");
+    CHAT_MEMORY_ID_INVALID(400, "유효하지 않은 메모리 ID입니다."),
+
+    // Redis
+    REDIS_PUBLISH_READ_FAILED(500, "Redis에서 발행된 메세지를 읽는 데 실패했습니다."),
+    REDIS_PUBLISH_FAILED(500, "Redis에서 메세지를 발행하는데 실패했습니다.");
 
     private final int status;
     private final String message;

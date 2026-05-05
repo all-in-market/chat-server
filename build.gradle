@@ -72,6 +72,9 @@ dependencies {
     implementation 'dev.langchain4j:langchain4j-pgvector:1.13.0-beta23'
     implementation 'org.postgresql:postgresql'
 
+    // WebSocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'

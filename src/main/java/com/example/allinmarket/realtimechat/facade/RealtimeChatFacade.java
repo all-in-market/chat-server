@@ -46,48 +46,44 @@ public class RealtimeChatFacade {
         // 참여자 조회
         List<Long> participants = chatService.getParticipantIds(dto.roomId());
 
-        // unread 증가
-        for (Long userId : participants) {
-            if (!userId.equals(senderId)) {
-                unreadService.incrementUnread(dto.roomId(), userId);
-            }
-        }
-
-        // unread 맵 생성
-        Map<Long, Integer> unreadMap = new HashMap<>();
-
-        for (Long userId : participants) {
-            unreadMap.put(userId, unreadService.getUnread(dto.roomId(), userId));
-        }
-
         String senderName = chatProvider.getUserName(senderId, senderType);
 
-        RealtimeChatMessageDto response = new RealtimeChatMessageDto(
-                RealtimeChatMessageType.TALK,
-                saved.getRoomId(),
-                senderName,
-                saved.getMessage(),
-                unreadMap,
-                dto.tempId()
-        );
+        Long roomId = saved.getRoomId();
+        String message = saved.getMessage();
+        String tempId = dto.tempId();
 
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        redisPublisher.publish(dto.roomId(), response);
-                    }
+        afterCommit(() -> {
+            // unread 증가
+            for (Long userId : participants) {
+                if (!userId.equals(senderId)) {
+                    unreadService.incrementUnread(dto.roomId(), userId);
                 }
-        );
+            }
+
+            // unread 맵 생성
+            Map<Long, Integer> unreadMap = new HashMap<>();
+
+            for (Long userId : participants) {
+                unreadMap.put(userId, unreadService.getUnread(dto.roomId(), userId));
+            }
+
+            RealtimeChatMessageDto response = new RealtimeChatMessageDto(
+                    RealtimeChatMessageType.TALK,
+                    roomId,
+                    senderName,
+                    message,
+                    unreadMap,
+                    tempId
+            );
+
+            redisPublisher.publish(dto.roomId(), response);
+        });
     }
 
     @Transactional
     public void enterRoom(RealtimeChatMessageDto dto, Long userId, RealtimeChatSenderType senderType) {
         // 참여자 검증
         chatService.validateParticipant(dto.roomId(), userId);
-
-        // unread 초기화 (입장 시 읽음 처리)
-        unreadService.resetUnread(dto.roomId(), userId);
 
         String senderName = chatProvider.getUserName(userId, senderType);
 
@@ -101,14 +97,12 @@ public class RealtimeChatFacade {
                 dto.tempId()
         );
 
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        redisPublisher.publish(dto.roomId(), messageDto);
-                    }
-                }
-        );
+        afterCommit(() -> {
+            // unread 초기화 (입장 시 읽음 처리)
+            unreadService.resetUnread(dto.roomId(), userId);
+
+            redisPublisher.publish(dto.roomId(), messageDto);
+        });
     }
 
     @Transactional
@@ -150,6 +144,21 @@ public class RealtimeChatFacade {
                 userId.toString(),
                 "/sub/chat/status",
                 Map.of("tempId", tempId, "status", status)
+        );
+    }
+
+    private void afterCommit(Runnable task) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            task.run();
+                        } catch (Exception e) {
+                            log.error("afterCommit 실패", e);
+                        }
+                    }
+                }
         );
     }
 }

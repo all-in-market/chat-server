@@ -11,6 +11,11 @@ public record UserPrincipal(
 ) implements Principal {
 
     @Override
+    public String toString() {
+        return "UserPrincipal[userId=" + userId + ", senderType=" + senderType + ", token=****]";
+    }
+
+    @Override
     public String getName() {
         return String.valueOf(userId);
     }

@@ -1,5 +1,6 @@
 package com.example.allinmarket.realtimechat.facade;
 
+import com.example.allinmarket.common.enums.ErrorEnum;
 import com.example.allinmarket.common.exception.BaseException;
 import com.example.allinmarket.common.redis.RedisPublisher;
 import com.example.allinmarket.common.security.UserPrincipal;
@@ -110,10 +111,14 @@ public class RealtimeChatFacade {
         try {
             chatService.validateParticipant(dto.roomId(), userPrincipal.userId());
 
-            if (RealtimeChatMessageType.ENTER.equals(dto.type())) {
-                enterRoom(dto, userPrincipal.userId(), userPrincipal.senderType());
-            } else {
-                sendMessage(dto, userPrincipal.userId(), userPrincipal.senderType());
+            if (dto.type() == null){
+                throw new BaseException(ErrorEnum.MESSAGE_TYPE_INVALID);
+            }
+
+            switch (dto.type()) {
+                case ENTER -> enterRoom(dto, userPrincipal.userId(), userPrincipal.senderType());
+                case TALK -> sendMessage(dto, userPrincipal.userId(), userPrincipal.senderType());
+                default -> throw new BaseException(ErrorEnum.MESSAGE_TYPE_INVALID);
             }
 
             TransactionSynchronizationManager.registerSynchronization(

@@ -100,7 +100,8 @@ public enum ErrorEnum {
     CHAT_ROOM_NOT_FOUND(404, "채팅방이 존재하지 않습니다."),
     CHAT_ROOM_ALREADY_EXISTS(409, "채팅방이 이미 존재 합니다."),
     SENDER_TYPE_INVALID(400, "잘못된 SENDER_TYPE 입니다."),
-    
+    MESSAGE_TYPE_INVALID(400, "잘못된 MESSAGE_TYPE 입니다."),
+
     // Chat Memory
     CHAT_MEMORY_ID_INVALID(400, "유효하지 않은 메모리 ID입니다."),
 

@@ -54,30 +54,39 @@ public class RealtimeChatFacade {
         String tempId = dto.tempId();
 
         afterCommit(() -> {
-            // unread 증가
-            for (Long userId : participants) {
-                if (!userId.equals(senderId)) {
-                    unreadService.incrementUnread(dto.roomId(), userId);
+            try {
+                // unread 증가
+                for (Long userId : participants) {
+                    if (!userId.equals(senderId)) {
+                        unreadService.incrementUnread(dto.roomId(), userId);
+                    }
                 }
+
+                // unread 맵 생성
+                Map<Long, Integer> unreadMap = new HashMap<>();
+
+                for (Long userId : participants) {
+                    unreadMap.put(userId, unreadService.getUnread(dto.roomId(), userId));
+                }
+
+                RealtimeChatMessageDto response = new RealtimeChatMessageDto(
+                        RealtimeChatMessageType.TALK,
+                        roomId,
+                        senderName,
+                        message,
+                        unreadMap,
+                        tempId
+                );
+
+                redisPublisher.publish(dto.roomId(), response);
+
+            } catch (Exception e) {
+                log.error("메세지 발행 실패", e);
+
+                sendAck(senderId, tempId, "REDIS_PUBLISH_FAILED");
             }
 
-            // unread 맵 생성
-            Map<Long, Integer> unreadMap = new HashMap<>();
-
-            for (Long userId : participants) {
-                unreadMap.put(userId, unreadService.getUnread(dto.roomId(), userId));
-            }
-
-            RealtimeChatMessageDto response = new RealtimeChatMessageDto(
-                    RealtimeChatMessageType.TALK,
-                    roomId,
-                    senderName,
-                    message,
-                    unreadMap,
-                    tempId
-            );
-
-            redisPublisher.publish(dto.roomId(), response);
+            sendAck(senderId, tempId, "SUCCESS");
         });
     }
 
@@ -99,10 +108,18 @@ public class RealtimeChatFacade {
         );
 
         afterCommit(() -> {
-            // unread 초기화 (입장 시 읽음 처리)
-            unreadService.resetUnread(dto.roomId(), userId);
+            try {
+                // unread 초기화 (입장 시 읽음 처리)
+                unreadService.resetUnread(dto.roomId(), userId);
 
-            redisPublisher.publish(dto.roomId(), messageDto);
+                redisPublisher.publish(dto.roomId(), messageDto);
+
+            } catch (Exception e) {
+                log.error("입장 이벤트 실패", e);
+                sendAck(userId, dto.tempId(), "REDIS_PUBLISH_FAILED");
+            }
+
+            sendAck(userId, dto.tempId(), "SUCCESS");
         });
     }
 
@@ -120,15 +137,6 @@ public class RealtimeChatFacade {
                 case TALK -> sendMessage(dto, userPrincipal.userId(), userPrincipal.senderType());
                 default -> throw new BaseException(ErrorEnum.MESSAGE_TYPE_INVALID);
             }
-
-            TransactionSynchronizationManager.registerSynchronization(
-                    new TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            sendAck(userPrincipal.userId(), dto.tempId(), "SUCCESS");
-                        }
-                    }
-            );
 
         } catch (BaseException e) {
             log.error("채팅 처리 중 비즈니스 예외 발생: {}", e.getMessage());
@@ -157,11 +165,7 @@ public class RealtimeChatFacade {
                 new TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
-                        try {
-                            task.run();
-                        } catch (Exception e) {
-                            log.error("afterCommit 실패", e);
-                        }
+                        task.run();
                     }
                 }
         );

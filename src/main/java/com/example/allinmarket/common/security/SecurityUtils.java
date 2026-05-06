@@ -6,6 +6,7 @@ import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 
 public class SecurityUtils {
 
@@ -13,6 +14,14 @@ public class SecurityUtils {
 
     public static Long getCurrentUserId() {
         return getUserPrincipal().userId();
+    }
+
+    public static String getCurrentToken() {
+        String token = getUserPrincipal().token();
+        if(!StringUtils.hasText(token)) {
+            throw new BaseException(ErrorEnum.UNAUTHORIZED);
+        }
+        return "Bearer " + token;
     }
 
     public static RealtimeChatSenderType getCurrentSenderType() {

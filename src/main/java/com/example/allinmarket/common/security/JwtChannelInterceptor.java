@@ -47,7 +47,7 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
             RealtimeChatSenderType senderType = jwtProvider.getSenderType(token);
 
             // Principal 세팅
-            UserPrincipal principal = new UserPrincipal(userId, senderType);
+            UserPrincipal principal = new UserPrincipal(userId, senderType, token);
 
             accessor.setUser(new UsernamePasswordAuthenticationToken(
                     principal, null, List.of()

@@ -62,7 +62,7 @@ public class ChatController {
 
                 TokenStream tokenStream = ChatConsts.SMALL_TALK.equals(intent)
                         ? aiAssistant.smallTalk(userId, request.message())
-                        : aiAssistant.chat(userId, request.message(), token);
+                        : aiAssistant.chat(userId, request.message());
 
                 tokenStream
                         .onPartialResponseWithContext((chunk, context) -> {
@@ -145,7 +145,7 @@ public class ChatController {
 
         TokenStream tokenStream = ChatConsts.SMALL_TALK.equals(intent)
                 ? aiAssistant.smallTalk(userId, request.message())
-                : aiAssistant.chat(userId, request.message(), token);
+                : aiAssistant.chat(userId, request.message());
 
         tokenStream
                 .onPartialResponseWithContext((chunk, context) -> {

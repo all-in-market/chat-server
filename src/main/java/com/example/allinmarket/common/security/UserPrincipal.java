@@ -6,8 +6,14 @@ import java.security.Principal;
 
 public record UserPrincipal(
         Long userId,
-        RealtimeChatSenderType senderType
+        RealtimeChatSenderType senderType,
+        String token
 ) implements Principal {
+
+    @Override
+    public String toString() {
+        return "UserPrincipal[userId=" + userId + ", senderType=" + senderType + ", token=****]";
+    }
 
     @Override
     public String getName() {

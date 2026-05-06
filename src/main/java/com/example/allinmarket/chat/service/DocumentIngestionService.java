@@ -6,6 +6,7 @@ import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
@@ -28,33 +29,34 @@ public class DocumentIngestionService {
 
     private final EmbeddingStore<TextSegment> embeddingStore;
     private final EmbeddingModel embeddingModel;
+    private final SemanticDocumentSplitter semanticDocumentSplitter;
 
     @PostConstruct
     public void ingestDocuments() {
         try {
-            // 이미 데이터가 있으면 스킵
-            if(isAlreadyIngested()) {
+            if (isAlreadyIngested()) {
                 log.info("이미 인제스천된 문서가 있습니다. 인제스천을 건너뜁니다.");
                 return;
             }
 
-            // 문서 로드
             List<Document> documents = List.of(
-                loadDocument("documents/return-policy.txt"),
-                loadDocument("documents/exchange-policy.txt")
+                    loadDocument("documents/return-policy.txt"),
+                    loadDocument("documents/exchange-policy.txt")
             );
 
-            // 청킹 설정
-            DocumentSplitter splitter = DocumentSplitters.recursive(300, 30);
+            // Semantic Chunking
+            List<TextSegment> segments = documents.stream()
+                    .flatMap(doc -> semanticDocumentSplitter.split(doc).stream())
+                    .toList();
 
-            // 인제스천 파이프라인
-            EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
-                .documentSplitter(splitter)
-                .embeddingModel(embeddingModel)
-                .embeddingStore(embeddingStore)
-                .build();
+            log.info("[Ingestion] 총 {}개 세그먼트 생성", segments.size());
 
-            ingestor.ingest(documents);
+            // 임베딩 후 저장
+            for (TextSegment segment : segments) {
+                Embedding embedding = embeddingModel.embed(segment.text()).content();
+                embeddingStore.add(embedding, segment);
+            }
+
             log.info("문서 인제스천 완료");
         } catch (Exception e) {
             log.error("문서 인제스천 실패: {}", e.getMessage());

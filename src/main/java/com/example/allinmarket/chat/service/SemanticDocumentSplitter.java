@@ -1,17 +1,17 @@
 package com.example.allinmarket.chat.service;
 
 import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
-import dev.langchain4j.data.embedding.Embedding;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.text.BreakIterator;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Component
@@ -63,10 +63,19 @@ public class SemanticDocumentSplitter {
     }
 
     private List<String> splitIntoSentences(String text) {
-        return Arrays.stream(text.split("(?<=\\n)"))
-                .map(String::trim)
-                .filter(s -> !s.isBlank())
-                .toList();
+        BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.KOREAN);
+        iterator.setText(text);
+
+        List<String> sentences = new ArrayList<>();
+        for (int start = iterator.first(), end = iterator.next();
+             end != BreakIterator.DONE;
+             start = end, end = iterator.next()) {
+            String sentence = text.substring(start, end).trim();
+            if (!sentence.isBlank()) {
+                sentences.add(sentence);
+            }
+        }
+        return sentences;
     }
 
     private double cosineSimilarity(Embedding a, Embedding b) {

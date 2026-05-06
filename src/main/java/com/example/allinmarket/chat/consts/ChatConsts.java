@@ -13,7 +13,7 @@ public final class ChatConsts {
 
     // Chat Memory
     public static final String MEMORY_KEY_PREFIX = "chat:memory:";
-    public static final Duration MEMORY_TTL = Duration.ofHours(24);
+    public static final Duration MEMORY_TTL = Duration.ofHours(1);
 
     // SSE
     public static final long SSE_TIMEOUT = 180_000L; // 3분

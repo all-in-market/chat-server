@@ -18,7 +18,12 @@ public final class ChatConsts {
     // SSE
     public static final long SSE_TIMEOUT = 180_000L; // 3분
 
-    // RestClient 타임아웃
+    // RestClient Timeout
     public static final int CONNECT_TIMEOUT = 5000;  // 5초
     public static final int READ_TIMEOUT = 10000;    // 10초
+
+    // Hybrid Search
+    public static final int HYBRID_CANDIDATE_SIZE = 10;  // RRF 후보군 크기
+    public static final int HYBRID_FINAL_SIZE = 3;        // RRF 최종 결과 크기
+    public static final int RRF_K = 60;                   // RRF 상수
 }

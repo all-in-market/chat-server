@@ -58,13 +58,11 @@ api:
 langchain4j:
   open-ai:
     chat-model:
-      api-key: ${DEEPSEEK_API_KEY}
-      base-url: https://api.deepseek.com
-      model-name: deepseek-chat
+      api-key: ${OPENAI_API_KEY}
+      model-name: gpt-4o-mini
     streaming-chat-model:
-      api-key: ${DEEPSEEK_API_KEY}
-      base-url: https://api.deepseek.com
-      model-name: deepseek-chat
+      api-key: ${OPENAI_API_KEY}
+      model-name: gpt-4o-mini
     moderation-model:
       api-key: ${OPENAI_API_KEY}
       model-name: omni-moderation-latest

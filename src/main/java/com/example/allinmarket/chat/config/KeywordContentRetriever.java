@@ -18,15 +18,21 @@ public class KeywordContentRetriever {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Content> retrieve(Query query) {
+        // 질문에서 주요 키워드 추출 (한국어 2글자 이상)
+        String[] tokens = query.text().split("\\s+");
+        String keyword = tokens[0]; // 첫 번째 토큰 사용
+
+        log.info("[KeywordSearch] 검색 시작: '{}' → 키워드: '{}'", query.text(), keyword);
+
         String sql = """
         SELECT embedding_id, text
         FROM langchain4j_embedding_store
-        WHERE to_tsvector('simple', text) @@ plainto_tsquery('simple', ?)
-        ORDER BY ts_rank(to_tsvector('simple', text), plainto_tsquery('simple', ?)) DESC
+        WHERE text ILIKE ?
         LIMIT ?
         """;
         try {
-            return jdbcTemplate.query(
+            String searchPattern = "%" + keyword + "%";
+            List<Content> results = jdbcTemplate.query(
                     sql,
                     (rs, rowNum) -> {
                         String id = rs.getString("embedding_id");
@@ -34,10 +40,12 @@ public class KeywordContentRetriever {
                         TextSegment segment = TextSegment.from(text, Metadata.from("embedding_id", id));
                         return Content.from(segment);
                     },
-                    query.text(), query.text(), ChatConsts.HYBRID_CANDIDATE_SIZE
+                    searchPattern, ChatConsts.HYBRID_CANDIDATE_SIZE
             );
+            log.info("[KeywordSearch] 검색 완료: {}개 결과", results.size());
+            return results;
         } catch (Exception e) {
-            log.warn("[KeywordSearch] 키워드 검색 실패: {}", e.getMessage());
+            log.warn("[KeywordSearch] 키워드 검색 실패: {}", e.getMessage(), e);
             return List.of();
         }
     }

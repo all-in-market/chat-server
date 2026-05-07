@@ -51,3 +51,9 @@ out/
 
 ### Mac ###
 .DS_Store
+
+### RAGAS ###
+ragas/**/*.json
+ragas/**/*.html
+!ragas/*.py
+!ragas/*.txt

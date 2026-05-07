@@ -38,9 +38,11 @@ public class ChatBotConfig {
         return new TaskExecutor() {
             @Override
             public void execute(Runnable task) {
-                SecurityContext context = SecurityContextHolder.getContext();
+                SecurityContext parent = SecurityContextHolder.getContext();
                 virtualThreadExecutor.execute(() -> {
                     try {
+                        SecurityContext context = SecurityContextHolder.createEmptyContext();
+                        context.setAuthentication(parent.getAuthentication());
                         SecurityContextHolder.setContext(context);
                         task.run();
                     } finally {

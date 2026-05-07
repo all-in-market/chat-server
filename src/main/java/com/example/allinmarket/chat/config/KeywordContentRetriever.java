@@ -19,12 +19,18 @@ public class KeywordContentRetriever {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Content> retrieve(Query query) {
-        // 질문에서 주요 키워드 추출 (한국어 2글자 이상)
         String[] tokens = query.text().split("\\s+");
+        if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isEmpty())) {
+            return List.of();
+        }
         String keyword = Arrays.stream(tokens)
                 .filter(t -> t.length() >= 2)
                 .findFirst()
                 .orElse(tokens[0]);
+
+        if (keyword.isBlank()) {
+            return List.of();
+        }
 
         String sql = """
         SELECT embedding_id, text

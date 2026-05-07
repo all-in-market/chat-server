@@ -9,6 +9,7 @@ import com.example.allinmarket.chat.service.ModerationService;
 import com.example.allinmarket.common.security.SecurityUtils;
 import dev.langchain4j.model.chat.response.StreamingHandle;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.query.Query;
 import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -131,7 +132,7 @@ public class ChatController {
         List<String> contexts = List.of();
         if (!ChatConsts.SMALL_TALK.equals(intent)) {
             contexts = contentRetriever
-                    .retrieve(new dev.langchain4j.rag.query.Query(request.message()))
+                    .retrieve(new Query(request.message()))
                     .stream()
                     .map(content -> content.textSegment().text())
                     .toList();

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -20,9 +21,10 @@ public class KeywordContentRetriever {
     public List<Content> retrieve(Query query) {
         // 질문에서 주요 키워드 추출 (한국어 2글자 이상)
         String[] tokens = query.text().split("\\s+");
-        String keyword = tokens[0]; // 첫 번째 토큰 사용
-
-        log.info("[KeywordSearch] 검색 시작: '{}' → 키워드: '{}'", query.text(), keyword);
+        String keyword = Arrays.stream(tokens)
+                .filter(t -> t.length() >= 2)
+                .findFirst()
+                .orElse(tokens[0]);
 
         String sql = """
         SELECT embedding_id, text
@@ -42,7 +44,6 @@ public class KeywordContentRetriever {
                     },
                     searchPattern, ChatConsts.HYBRID_CANDIDATE_SIZE
             );
-            log.info("[KeywordSearch] 검색 완료: {}개 결과", results.size());
             return results;
         } catch (Exception e) {
             log.warn("[KeywordSearch] 키워드 검색 실패: {}", e.getMessage(), e);

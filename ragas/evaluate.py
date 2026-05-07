@@ -12,7 +12,7 @@ from test_dataset import test_cases
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY")
 JWT_TOKEN = os.environ.get("JWT_TOKEN", "Bearer YOUR_JWT_TOKEN")
 CHAT_URL = "http://localhost:8082/chat/evaluate"
-OUTPUT_FILE = "ragas_baseline_result.json"
+OUTPUT_FILE = "ragas_final_result.json"
 
 
 def call_chatbot(question: str) -> tuple[str, list[str]]:
@@ -21,11 +21,15 @@ def call_chatbot(question: str) -> tuple[str, list[str]]:
             CHAT_URL,
             json={"message": question},
             headers={"Authorization": JWT_TOKEN, "Content-Type": "application/json"},
-            timeout=60
+            timeout=120  # ← 60초 → 120초로 증가
         )
         resp.raise_for_status()
         data = resp.json()
-        return data["answer"], data["contexts"]
+        print(f"[DEBUG] 응답: {data}")  # ← 디버깅용
+        return data.get("answer", ""), data.get("contexts", [])
+    except requests.Timeout:
+        print(f"[ERROR] 타임아웃: {question}")
+        return "", []
     except Exception as e:
         print(f"[ERROR] 챗봇 호출 실패: {e}")
         return "", []
@@ -95,7 +99,16 @@ def main():
     print("=" * 50)
 
     output = {
-        "phase": "baseline",
+        "phase": "final",
+        "model": "GPT-4o-mini",
+        "enhancements": [
+            "✅ Semantic Chunking (의미 단위 청킹)",
+            "✅ 하이브리드 검색 + RRF",
+            "✅ System Prompt 튜닝 (문서 기반만, 추측 금지)",
+            "✅ GPT-4o-mini 전환 (DeepSeek → OpenAI)",
+            "✅ 문서 구조 개선 (번호 제거, 명확한 구분)"
+        ],
+        "implementation": "Semantic Chunking + 하이브리드 검색 (minScore 0.5) + System Prompt 튜닝",
         "faithfulness":      f_score,
         "answer_relevancy":  ar_score,
         "context_precision": cp_score,

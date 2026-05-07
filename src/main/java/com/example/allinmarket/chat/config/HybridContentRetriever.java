@@ -26,18 +26,10 @@ public class HybridContentRetriever implements ContentRetriever{
         // 1. 벡터 검색
         List<Content> vectorResults = vectorContentRetriever.retrieve(query);
         log.debug("[Vector] {}개 결과", vectorResults.size());
-        for (int i = 0; i < vectorResults.size(); i++) {
-            String preview = vectorResults.get(i).textSegment().text().substring(0, Math.min(50, vectorResults.get(i).textSegment().text().length()));
-            log.debug("[Vector] {}. {}", i + 1, preview);
-        }
 
         // 2. 키워드 검색
         List<Content> keywordResults = keywordContentRetriever.retrieve(query);
         log.debug("[Keyword] {}개 결과", keywordResults.size());
-        for (int i = 0; i < keywordResults.size(); i++) {
-            String preview = keywordResults.get(i).textSegment().text().substring(0, Math.min(50, keywordResults.get(i).textSegment().text().length()));
-            log.debug("[Keyword] {}. {}", i + 1, preview);
-        }
 
         // 3. RRF 점수 계산
         Map<String, Double> rrfScores = new HashMap<>();

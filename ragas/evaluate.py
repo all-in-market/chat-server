@@ -21,11 +21,10 @@ def call_chatbot(question: str) -> tuple[str, list[str]]:
             CHAT_URL,
             json={"message": question},
             headers={"Authorization": JWT_TOKEN, "Content-Type": "application/json"},
-            timeout=120  # ← 60초 → 120초로 증가
+            timeout=120
         )
         resp.raise_for_status()
         data = resp.json()
-        print(f"[DEBUG] 응답: {data}")  # ← 디버깅용
         return data.get("answer", ""), data.get("contexts", [])
     except requests.Timeout:
         print(f"[ERROR] 타임아웃: {question}")

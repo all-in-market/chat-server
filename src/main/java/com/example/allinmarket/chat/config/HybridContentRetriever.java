@@ -42,7 +42,7 @@ public class HybridContentRetriever implements ContentRetriever{
             double score = 1.0 / (ChatConsts.RRF_K + i + 1);
             rrfScores.merge(key, score, Double::sum);
             contentMap.put(key, content);
-            log.debug("[RRF-Vector] 순위: {}, 점수: {:.4f}", i + 1, score);
+            log.debug("[RRF-Keyword] 순위: {}, 점수: {}", i + 1, String.format("%.4f", score));
         }
 
         // 키워드 검색 결과 점수 부여
@@ -52,13 +52,13 @@ public class HybridContentRetriever implements ContentRetriever{
             double score = 1.0 / (ChatConsts.RRF_K + i + 1);
             rrfScores.merge(key, score, Double::sum);
             contentMap.put(key, content);
-            log.debug("[RRF-Keyword] 순위: {}, 점수: {:.4f}", i + 1, score);
+            log.debug("[RRF-Keyword] 순위: {}, 점수: {}", i + 1, String.format("%.4f", score));
         }
 
         // 4. RRF 점수 기준 정렬 후 상위 MAX_RESULTS 반환
         List<Content> result = rrfScores.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .peek(entry -> log.debug("[RRF-Final] 최종 점수: {:.4f}", entry.getValue()))
+                .peek(entry -> log.debug("[RRF-Final] 최종 점수: {}", String.format("%.4f", entry.getValue())))
                 .limit(ChatConsts.HYBRID_FINAL_SIZE)
                 .map(entry -> contentMap.get(entry.getKey()))
                 .toList();

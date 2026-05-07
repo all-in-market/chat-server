@@ -2,6 +2,7 @@ package com.example.allinmarket.chat.config;
 
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ import java.util.concurrent.Executors;
 public class ChatBotConfig {
 
     private final RedisChatMemoryStore redisChatMemoryStore;
+    private final ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
     @Bean
     public ChatMemoryProvider chatMemoryProvider() {
@@ -32,7 +34,6 @@ public class ChatBotConfig {
     @Bean
     public TaskExecutor chatTaskExecutor() {
         log.info("가상 스레드 기반 TaskExecutor 초기화");
-        ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
         return new TaskExecutor() {
             @Override
@@ -48,5 +49,9 @@ public class ChatBotConfig {
                 });
             }
         };
+    }
+    @PreDestroy
+    public void shutdownVirtualThreadExecutor() {
+        virtualThreadExecutor.shutdown();
     }
 }

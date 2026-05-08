@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -18,15 +19,28 @@ public class KeywordContentRetriever {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Content> retrieve(Query query) {
+        String[] tokens = query.text().split("\\s+");
+        if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isEmpty())) {
+            return List.of();
+        }
+        String keyword = Arrays.stream(tokens)
+                .filter(t -> t.length() >= 2)
+                .findFirst()
+                .orElse(tokens[0]);
+
+        if (keyword.isBlank()) {
+            return List.of();
+        }
+
         String sql = """
         SELECT embedding_id, text
         FROM langchain4j_embedding_store
-        WHERE to_tsvector('simple', text) @@ plainto_tsquery('simple', ?)
-        ORDER BY ts_rank(to_tsvector('simple', text), plainto_tsquery('simple', ?)) DESC
+        WHERE text ILIKE ?
         LIMIT ?
         """;
         try {
-            return jdbcTemplate.query(
+            String searchPattern = "%" + keyword + "%";
+            List<Content> results = jdbcTemplate.query(
                     sql,
                     (rs, rowNum) -> {
                         String id = rs.getString("embedding_id");
@@ -34,10 +48,11 @@ public class KeywordContentRetriever {
                         TextSegment segment = TextSegment.from(text, Metadata.from("embedding_id", id));
                         return Content.from(segment);
                     },
-                    query.text(), query.text(), ChatConsts.HYBRID_CANDIDATE_SIZE
+                    searchPattern, ChatConsts.HYBRID_CANDIDATE_SIZE
             );
+            return results;
         } catch (Exception e) {
-            log.warn("[KeywordSearch] 키워드 검색 실패: {}", e.getMessage());
+            log.warn("[KeywordSearch] 키워드 검색 실패: {}", e.getMessage(), e);
             return List.of();
         }
     }

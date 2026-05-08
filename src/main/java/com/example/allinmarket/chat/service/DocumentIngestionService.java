@@ -77,6 +77,7 @@ public class DocumentIngestionService {
         EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
                 .queryEmbedding(embeddingModel.embed("test").content())
                 .maxResults(1)
+                .minScore(0.0)
                 .build();
         return !embeddingStore.search(request).matches().isEmpty();
     }

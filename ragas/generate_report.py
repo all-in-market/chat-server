@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 BASELINE_FILE = "ragas_baseline_result.json"
-ADVANCED_FILE = "ragas_advanced_result.json"
+ADVANCED_FILE = "ragas_final_result.json"
 OUTPUT_FILE = "ragas_report.html"
 
 

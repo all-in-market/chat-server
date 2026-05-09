@@ -1,0 +1,76 @@
+[[chat]]
+== AI 챗봇
+
+[[chat-stream]]
+=== 챗봇 스트리밍 응답
+
+`POST /chat/stream`
+
+SSE(Server-Sent Events) 방식으로 AI 답변을 스트리밍합니다. +
+`text/event-stream` 형식으로 응답이 청크 단위로 전달됩니다.
+
+==== 요청 예시
+include::{snippets}/chat/evaluate/inquiry/http-request.adoc[]
+
+---
+
+[[chat-evaluate-inquiry]]
+=== 챗봇 답변 평가 - 서비스 문의
+
+`POST /chat/evaluate`
+
+주문, 상품, 반품, 교환 등 서비스 관련 문의에 대해 RAG 기반으로 답변을 생성합니다.
+
+==== 요청 필드
+include::{snippets}/chat/evaluate/inquiry/request-fields.adoc[]
+
+==== 요청 예시
+include::{snippets}/chat/evaluate/inquiry/http-request.adoc[]
+
+==== 응답 필드
+include::{snippets}/chat/evaluate/inquiry/response-fields.adoc[]
+
+==== 응답 예시
+include::{snippets}/chat/evaluate/inquiry/http-response.adoc[]
+
+---
+
+[[chat-evaluate-small-talk]]
+=== 챗봇 답변 평가 - 일상 대화
+
+`POST /chat/evaluate`
+
+인사, 감사 등 일상 대화에 대해 답변을 생성합니다. RAG 컨텍스트 없이 응답합니다.
+
+==== 요청 필드
+include::{snippets}/chat/evaluate/small-talk/request-fields.adoc[]
+
+==== 요청 예시
+include::{snippets}/chat/evaluate/small-talk/http-request.adoc[]
+
+==== 응답 필드
+include::{snippets}/chat/evaluate/small-talk/response-fields.adoc[]
+
+==== 응답 예시
+include::{snippets}/chat/evaluate/small-talk/http-response.adoc[]
+
+---
+
+[[chat-evaluate-flagged]]
+=== 챗봇 답변 평가 - 유해 콘텐츠 감지
+
+`POST /chat/evaluate`
+
+욕설, 비하 등 부적절한 내용이 포함된 메시지에 대한 응답입니다.
+
+==== 요청 필드
+include::{snippets}/chat/evaluate/flagged/request-fields.adoc[]
+
+==== 요청 예시
+include::{snippets}/chat/evaluate/flagged/http-request.adoc[]
+
+==== 응답 필드
+include::{snippets}/chat/evaluate/flagged/response-fields.adoc[]
+
+==== 응답 예시
+include::{snippets}/chat/evaluate/flagged/http-response.adoc[]

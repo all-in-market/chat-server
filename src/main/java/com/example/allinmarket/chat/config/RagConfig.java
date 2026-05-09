@@ -26,15 +26,26 @@ public class RagConfig {
             DataSource dataSource,
             @Value("${langchain4j.pgvector.dimension}") int dimension
     ) throws SQLException {
-        HikariDataSource hikari = (HikariDataSource) dataSource;
-        String jdbcUrl = hikari.getJdbcUrl();
+        if (!(dataSource instanceof HikariDataSource hikari)) {
+            throw new IllegalStateException(
+                    "Expected HikariDataSource but got: " + dataSource.getClass().getName()
+            );
+        }
 
+        String jdbcUrl = hikari.getJdbcUrl();
         URI uri = URI.create(jdbcUrl.replace("jdbc:", ""));
+
+        String path = uri.getPath();
+        if (path == null || path.length() <= 1) {
+            throw new IllegalArgumentException("Invalid JDBC URL (database name missing): " + jdbcUrl);
+        }
+
+        int port = (uri.getPort() == -1) ? 5432 : uri.getPort();
 
         return PgVectorEmbeddingStore.builder()
                 .host(uri.getHost())
-                .port(uri.getPort())
-                .database(uri.getPath().substring(1))
+                .port(port)
+                .database(path.substring(1))
                 .user(hikari.getUsername())
                 .password(hikari.getPassword())
                 .table("langchain4j_embedding_store")

@@ -7,3 +7,5 @@
 :sectlinks:
 
 include::realtimechat/realtimechat.adoc[]
+
+include::chatbot/chatbot.adoc[]

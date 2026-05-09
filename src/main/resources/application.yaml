@@ -66,10 +66,4 @@ langchain4j:
       api-key: ${OPENAI_API_KEY}
       model-name: text-embedding-3-small
   pgvector:
-    host: ${DB_HOST:localhost}
-    port: ${DB_PORT:5432}
-    database: ${DB_NAME:allinmarket}
-    user: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD}
     dimension: 1536
-    create-table: false

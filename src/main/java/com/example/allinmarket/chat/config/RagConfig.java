@@ -1,6 +1,7 @@
 package com.example.allinmarket.chat.config;
 
 import com.example.allinmarket.chat.consts.ChatConsts;
+import com.zaxxer.hikari.HikariDataSource;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
@@ -12,25 +13,30 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
+import java.net.URI;
+import java.sql.SQLException;
+
 @Configuration
 public class RagConfig {
 
     // 임베딩 DB 설정
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore(
-            @Value("${langchain4j.pgvector.host}") String host,
-            @Value("${langchain4j.pgvector.port}") int port,
-            @Value("${langchain4j.pgvector.database}") String database,
-            @Value("${langchain4j.pgvector.user}") String user,
-            @Value("${langchain4j.pgvector.password}") String password,
+            DataSource dataSource,
             @Value("${langchain4j.pgvector.dimension}") int dimension
-    ) {
+    ) throws SQLException {
+        HikariDataSource hikari = (HikariDataSource) dataSource;
+        String jdbcUrl = hikari.getJdbcUrl();
+
+        URI uri = URI.create(jdbcUrl.replace("jdbc:", ""));
+
         return PgVectorEmbeddingStore.builder()
-                .host(host)
-                .port(port)
-                .database(database)
-                .user(user)
-                .password(password)
+                .host(uri.getHost())
+                .port(uri.getPort())
+                .database(uri.getPath().substring(1))
+                .user(hikari.getUsername())
+                .password(hikari.getPassword())
                 .table("langchain4j_embedding_store")
                 .dimension(dimension)
                 .build();

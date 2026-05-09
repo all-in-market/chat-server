@@ -3,3 +3,7 @@ spring:
     redis:
       ssl:
         enabled: true
+
+api:
+  server:
+    url: https://hyu1335.cloud

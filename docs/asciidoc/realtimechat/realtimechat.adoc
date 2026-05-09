@@ -1,0 +1,51 @@
+[[realtimechat]]
+== 실시간 채팅
+
+[[realtimechat-create-room]]
+=== 실시간 채팅방 생성
+
+`POST /chat/rooms`
+
+==== 쿼리 파라미터
+include::{snippets}/chat/create-room/query-parameters.adoc[]
+
+==== 요청 예시
+include::{snippets}/chat/create-room/http-request.adoc[]
+
+==== 응답 필드
+include::{snippets}/chat/create-room/response-fields.adoc[]
+
+==== 응답 예시
+include::{snippets}/chat/create-room/http-response.adoc[]
+
+---
+
+[[realtimechat-history]]
+=== 채팅방 채팅 기록 조회
+
+`GET /chat/rooms/{roomId}/messages`
+
+==== 요청 예시
+include::{snippets}/chat/history/http-request.adoc[]
+
+==== 응답 필드
+include::{snippets}/chat/history/response-fields.adoc[]
+
+==== 응답 예시
+include::{snippets}/chat/history/http-response.adoc[]
+
+---
+
+[[realtimechat-room-list]]
+=== 채팅방 목록 조회
+
+`GET /chat/rooms`
+
+==== 요청 예시
+include::{snippets}/chat/rooms/http-request.adoc[]
+
+==== 응답 필드
+include::{snippets}/chat/rooms/response-fields.adoc[]
+
+==== 응답 예시
+include::{snippets}/chat/rooms/http-response.adoc[]

@@ -51,10 +51,6 @@ app:
     admin:
       enabled: false
 
-api:
-  server:
-    url: ${API_SERVER_URL:http://localhost:8080}
-
 langchain4j:
   open-ai:
     chat-model:

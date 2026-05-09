@@ -175,7 +175,7 @@ class ChatControllerTest extends RestDocsControllerTest {
         }
 
         @Test
-        @DisplayName("Authorization 헤더 없으면 500 (GlobalExceptionHandler에 MissingRequestHeaderException 핸들러 미등록)")
+        @DisplayName("Authorization 헤더 없으면 400")
         void stream_Authorization_헤더_없음() throws Exception {
             setAuthContext(1L);
 
@@ -183,7 +183,7 @@ class ChatControllerTest extends RestDocsControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(
                                     new ChatRequest("안녕"))))
-                    .andExpect(status().isInternalServerError());
+                    .andExpect(status().isBadRequest()); // 500 → 400
         }
 
         @Test
@@ -303,7 +303,7 @@ class ChatControllerTest extends RestDocsControllerTest {
         }
 
         @Test
-        @DisplayName("Authorization 헤더 없으면 500 (GlobalExceptionHandler에 MissingRequestHeaderException 핸들러 미등록)")
+        @DisplayName("Authorization 헤더 없으면 400")
         void evaluate_Authorization_헤더_없음() throws Exception {
             setAuthContext(1L);
 
@@ -311,7 +311,7 @@ class ChatControllerTest extends RestDocsControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(
                                     new ChatRequest("반품 신청하고 싶어요"))))
-                    .andExpect(status().isInternalServerError());
+                    .andExpect(status().isBadRequest()); // 500 → 400
         }
 
         @Test

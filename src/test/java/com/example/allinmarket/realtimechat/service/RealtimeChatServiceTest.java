@@ -74,22 +74,23 @@ class RealtimeChatServiceTest {
     void 읽음_처리_성공_테스트() {
         TransactionSynchronizationManager.initSynchronization();
 
-        given(chatParticipantRepository.existsByRealtimeChatRoomIdAndUserId(10L, 1L)).willReturn(true);
-        given(chatMessageRepository.existsByIdAndRoomId(10L, 5L)).willReturn(true);
-        given(readStatusRepository.findByRoomIdAndUserId(10L, 1L))
-                .willReturn(Optional.of(RealtimeReadStatus.of(10L, 1L, 0L)));
+        try {
+            given(chatParticipantRepository.existsByRealtimeChatRoomIdAndUserId(10L, 1L)).willReturn(true);
+            given(chatMessageRepository.existsByIdAndRoomId(10L, 5L)).willReturn(true);
+            given(readStatusRepository.findByRoomIdAndUserId(10L, 1L)).willReturn(Optional.of(RealtimeReadStatus.of(10L, 1L, 0L)));
 
-        chatService.read(10L, 1L, 5L);
+            chatService.read(10L, 1L, 5L);
 
-        // afterCommit 콜백 강제 실행
-        TransactionSynchronizationManager.getSynchronizations()
-                .forEach(TransactionSynchronization::afterCommit);
+            // afterCommit 콜백 강제 실행
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
 
-        then(readStatusRepository).should().save(any(RealtimeReadStatus.class));
-        then(unreadService).should().resetUnread(10L, 1L);
-        then(redisPublisher).should().publishRead(eq(10L), any(RealtimeReadDto.class));
+            then(readStatusRepository).should().save(any(RealtimeReadStatus.class));
+            then(unreadService).should().resetUnread(10L, 1L);
+            then(redisPublisher).should().publishRead(eq(10L), any(RealtimeReadDto.class));
 
-        TransactionSynchronizationManager.clear();
+        } finally {
+            TransactionSynchronizationManager.clear();
+        }
     }
 
     @Test

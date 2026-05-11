@@ -97,7 +97,7 @@ class ModerationServiceTest {
         }
 
         @Test
-        @DisplayName("모델이 RuntimeException 외 Exception을 던져도 true를 반환한다")
+        @DisplayName("모델이 다른 RuntimeException을 던져도 true를 반환한다")
         void isFlagged_일반_예외_발생() {
             given(moderationModel.moderate(anyString()))
                     .willThrow(new IllegalStateException("상태 오류"));

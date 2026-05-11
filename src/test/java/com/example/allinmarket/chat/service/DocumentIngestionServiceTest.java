@@ -135,6 +135,10 @@ class DocumentIngestionServiceTest {
             org.assertj.core.api.Assertions.assertThatCode(
                     () -> documentIngestionService.ingestDocuments()
             ).doesNotThrowAnyException();
+
+            // 예외 발생 시 후속 인제스천 로직은 수행되지 않아야 함
+            verifyNoInteractions(semanticDocumentSplitter);
+            verify(embeddingStore, never()).add(any(Embedding.class), any(TextSegment.class));
         }
     }
 }

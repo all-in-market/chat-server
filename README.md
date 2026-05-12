@@ -308,6 +308,8 @@ flowchart TB
     SSE --> Client
 ```
 
+<br>
+
 ---
 
 ## 채팅 요청 처리 흐름
@@ -381,6 +383,8 @@ sequenceDiagram
     end
 ```
 
+<br>
+
 ---
 
 ## RAG 검색 구조
@@ -406,6 +410,8 @@ flowchart LR
     RRF --> TopK[상위 3개 Context]
     TopK --> GPT[GPT-4o-mini]
 ```
+
+<br>
 
 ---
 
@@ -433,6 +439,8 @@ flowchart TB
     Vectorize --> PGVector[(PGVector 저장)]
 ```
 
+<br>
+
 ---
 
 ## Semantic Chunking 내부 구조
@@ -458,6 +466,8 @@ flowchart TD
 
     Similarity --> Final[최종 Semantic Chunk 반환]
 ```
+
+<br>
 
 ---
 
@@ -485,6 +495,8 @@ flowchart TB
 
     Sort --> Result[Top 3 Context]
 ```
+
+<br>
 
 ---
 
@@ -516,6 +528,8 @@ sequenceDiagram
     Controller-->>User: SSE 종료
 ```
 
+<br>
+
 ---
 
 ## Redis 기반 Chat Memory 구조
@@ -539,6 +553,8 @@ flowchart LR
     Memory --> GPT
 ```
 
+<br>
+
 ---
 
 ## Virtual Thread 기반 비동기 처리
@@ -558,6 +574,8 @@ flowchart TB
 
     AI --> SSE[SSE 응답]
 ```
+
+<br>
 
 ---
 
@@ -581,6 +599,8 @@ flowchart LR
     Product --> ApiServer
     Refund --> ApiServer
 ```
+
+<br>
 
 ---
 
@@ -611,6 +631,8 @@ flowchart TB
     Metrics --> Report[HTML Report]
 ```
 
+<br>
+
 ---
 
 ## OpenAI 모델 구성
@@ -628,6 +650,8 @@ flowchart LR
 
     Embedding --> Vector[1536 차원 임베딩 생성]
 ```
+
+<br>
 
 ---
 

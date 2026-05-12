@@ -30,39 +30,604 @@
 
 # 3. 🔄 서비스 플로우
 
-## 기능 플로우
+## WebSocket 인증 플로우
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Server
-    participant Redis
-    participant DB
+    autonumber
 
-    Client->>Server: 요청
-    Server->>Redis: 캐시 조회
-    Redis-->>Server: 데이터 반환
-    Server->>DB: 데이터 조회
-    DB-->>Server: 결과 반환
-    Server-->>Client: 응답
+    participant Client
+    participant Interceptor as JwtChannelInterceptor
+    participant JWT as JwtProvider
+    participant WS as WebSocket
+
+    Client->>WS: CONNECT + JWT Token
+
+    WS->>Interceptor: preSend()
+
+    Interceptor->>JWT: validateToken()
+
+    alt 인증 성공
+        JWT-->>Interceptor: Valid Token
+
+        Interceptor->>Interceptor: Principal 생성
+
+        Interceptor-->>WS: 연결 허용
+
+    else 인증 실패
+        JWT-->>Interceptor: Invalid Token
+
+        Interceptor-->>Client: 연결 거부
+    end
 ```
 
 <br>
 
-## 실시간 처리 플로우
+---
+
+## 실시간 메시지 전송 플로우
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant ChatServer
-    participant Redis
+    autonumber
 
-    User->>ChatServer: 메시지 전송
-    ChatServer->>Redis: Pub/Sub 발행
-    Redis-->>ChatServer: 메시지 브로드캐스트
+    participant Client
+    participant WS as WebSocket Controller
+    participant Facade as RealtimeChatFacade
+    participant Service as RealtimeChatService
+    participant Redis as Redis Pub/Sub
+    participant Subscriber as RedisSubscriber
+    participant Other as Other Clients
+
+    Client->>WS: /pub/chat/message
+
+    WS->>Facade: handleMessage()
+
+    Facade->>Service: validateParticipant()
+
+    Facade->>Service: save()
+
+    Service->>DB: 메시지 저장
+
+    Facade->>Service: updateLastMessage()
+
+    Service->>DB: 채팅방 마지막 메시지 갱신
+
+    Facade->>Service: getParticipantIds()
+
+    Note right of Facade: afterCommit()
+
+    Facade->>Redis: publish()
+
+    Note right of Redis: chat.room.{roomId}
+
+    Redis-->>Subscriber: Pub/Sub 전달
+
+    Subscriber->>Other: /sub/chat/room/{roomId}
+
+    Other-->>Other: 실시간 메시지 수신
+
+    Facade->>Client: ACK SUCCESS
 ```
 
 <br>
+
+---
+
+## Redis Pub/Sub 멀티 서버 구조
+
+```mermaid
+flowchart LR
+
+    A[Client A] --> B[Chat Server 1]
+
+    C[Client B] --> D[Chat Server 2]
+
+    B --> E[Redis Pub/Sub]
+
+    D --> E
+
+    E --> B
+
+    E --> D
+
+    B --> A
+
+    D --> C
+
+    subgraph Multi Server Environment
+        B
+        D
+        E
+    end
+```
+
+<br>
+
+---
+
+## 읽음 처리 플로우
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant Client
+    participant WS as WebSocket
+    participant Service as RealtimeChatService
+    participant DB
+    participant Redis
+    participant Subscriber
+    participant Other as Other Clients
+
+    Client->>WS: /pub/chat/read
+
+    WS->>Service: read()
+
+    Service->>DB: lastReadMessageId 저장
+
+    Note right of Service: afterCommit()
+
+    Service->>Redis: unread reset
+
+    Service->>Redis: publishRead()
+
+    Redis-->>Subscriber: read 이벤트 전달
+
+    Subscriber->>Other: /sub/chat/read/{roomId}
+
+    Other-->>Other: 읽음 상태 실시간 반영
+```
+
+<br>
+
+---
+
+## Unread Count 캐시 전략
+
+```mermaid
+flowchart TD
+
+    A[Unread Count 요청] --> B{Redis Cache 존재 여부}
+
+    B -- HIT --> C[Redis 값 반환]
+
+    B -- MISS --> D[DB unread count 조회]
+
+    D --> E[Redis 저장]
+
+    E --> F[Unread Count 반환]
+```
+
+<br>
+
+---
+
+## 채팅방 생성 동시성 처리
+
+```mermaid
+flowchart TD
+
+    A[채팅방 생성 요청] --> B[기존 채팅방 조회]
+
+    B --> C{채팅방 존재 여부}
+
+    C -- YES --> D[기존 채팅방 반환]
+
+    C -- NO --> E[채팅방 생성 시도]
+
+    E --> F{Unique Constraint 발생 여부}
+
+    F -- NO --> G[채팅방 생성 성공]
+
+    F -- YES --> H[기존 채팅방 재조회]
+
+    H --> I[이미 생성된 채팅방 반환]
+```
+
+<br>
+
+---
+
+## ACK 기반 메시지 상태 동기화
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant Client
+    participant Facade as RealtimeChatFacade
+    participant Redis
+    participant WS as WebSocket
+
+    Client->>Facade: 메시지 전송(tempId 포함)
+
+    Facade->>Redis: publish()
+
+    alt 발행 성공
+        Facade->>WS: ACK SUCCESS
+    else 발행 실패
+        Facade->>WS: ACK REDIS_PUBLISH_FAILED
+    end
+
+    WS-->>Client: tempId 기반 상태 동기화
+```
+
+<br>
+
+---
+
+## 전체 AI 챗봇 아키텍처
+
+```mermaid
+flowchart TB
+
+    Client[사용자 Client]
+    ChatController[ChatController]
+    Moderation[ModerationService]
+    Intent[IntentClassifier]
+    AiAssistant[AiAssistant]
+    Retriever[HybridContentRetriever]
+    Vector[Vector Search]
+    Keyword[Keyword Search]
+    RRF[RRF Rank Fusion]
+    PgVector[(PGVector)]
+    Redis[(Redis Chat Memory)]
+    OpenAI[OpenAI GPT-4o-mini]
+    ApiServer[API Server]
+    Jwt[JWT 인증]
+    SSE[SSE Streaming]
+
+    Client -->|POST /chat/stream| Jwt
+    Jwt --> ChatController
+
+    ChatController --> Moderation
+    Moderation -->|정상 요청| Intent
+
+    Intent -->|SMALL_TALK| AiAssistant
+    Intent -->|INQUIRY| Retriever
+
+    Retriever --> Vector
+    Retriever --> Keyword
+
+    Vector --> PgVector
+    Keyword --> PgVector
+
+    Vector --> RRF
+    Keyword --> RRF
+
+    RRF --> AiAssistant
+
+    AiAssistant --> Redis
+    AiAssistant --> OpenAI
+
+    AiAssistant -->|Tool 호출| ApiServer
+
+    OpenAI --> ChatController
+    ChatController --> SSE
+    SSE --> Client
+```
+
+---
+
+## 채팅 요청 처리 흐름
+
+```mermaid
+sequenceDiagram
+
+    autonumber
+
+    participant User
+    participant Filter as JwtAuthenticationFilter
+    participant Controller as ChatController
+    participant Moderation as ModerationService
+    participant Intent as IntentClassifier
+    participant Retriever as HybridContentRetriever
+    participant Assistant as AiAssistant
+    participant OpenAI
+    participant Redis
+    participant API as API Server
+
+    User->>Filter: Authorization JWT 포함 요청
+
+    Filter->>Filter: JWT 검증
+    Filter->>Controller: 인증 완료
+
+    Controller->>Moderation: 유해성 검사
+
+    alt 유해 콘텐츠
+        Moderation-->>Controller: flagged=true
+        Controller-->>User: 차단 메시지 반환
+    else 정상 요청
+        Moderation-->>Controller: flagged=false
+
+        Controller->>Intent: 의도 분류
+
+        alt SMALL_TALK
+            Intent-->>Controller: SMALL_TALK
+            Controller->>Assistant: smallTalk()
+        else INQUIRY
+            Intent-->>Controller: INQUIRY
+
+            Controller->>Retriever: retrieve(query)
+
+            par Hybrid Search
+                Retriever->>Retriever: Vector Search
+                Retriever->>Retriever: Keyword Search
+            end
+
+            Retriever->>Retriever: RRF 점수 병합
+
+            Retriever-->>Controller: Context 반환
+
+            Controller->>Assistant: chat()
+        end
+
+        Assistant->>Redis: 대화 메모리 조회
+        Assistant->>OpenAI: Prompt + Context 전달
+
+        opt Tool Calling
+            Assistant->>API: 주문/상품/반품 API 호출
+        end
+
+        OpenAI-->>Assistant: Streaming Token
+
+        loop Streaming
+            Assistant-->>Controller: Token Chunk
+            Controller-->>User: SSE Stream
+        end
+
+        Assistant->>Redis: 대화 저장
+    end
+```
+
+---
+
+## RAG 검색 구조
+
+```mermaid
+flowchart LR
+
+    Query[사용자 질문]
+
+    Query --> VectorSearch[Vector Search]
+    Query --> KeywordSearch[Keyword Search]
+
+    VectorSearch --> EmbeddingModel[text-embedding-3-small]
+    EmbeddingModel --> PgVector[(PGVector)]
+
+    KeywordSearch --> SQL[ILIKE 검색]
+
+    PgVector --> RRF
+    SQL --> RRF
+
+    RRF[Reciprocal Rank Fusion]
+
+    RRF --> TopK[상위 3개 Context]
+    TopK --> GPT[GPT-4o-mini]
+```
+
+---
+
+## 문서 인제스천 파이프라인
+
+```mermaid
+flowchart TB
+
+    Policy[정책 문서 txt]
+
+    Policy --> Loader[FileSystemDocumentLoader]
+
+    Loader --> Splitter[SemanticDocumentSplitter]
+
+    Splitter --> Sentence[문장 단위 분리]
+
+    Sentence --> Embedding[text-embedding-3-small]
+
+    Embedding --> Similarity[문장 간 Cosine Similarity 계산]
+
+    Similarity --> Chunking[Semantic Chunk 생성]
+
+    Chunking --> Vectorize[Embedding 생성]
+
+    Vectorize --> PGVector[(PGVector 저장)]
+```
+
+---
+
+## Semantic Chunking 내부 구조
+
+```mermaid
+flowchart TD
+
+    Start[문서 입력]
+
+    Start --> SentenceSplit[문장 단위 분리]
+
+    SentenceSplit --> Embedding[문장별 임베딩 생성]
+
+    Embedding --> Similarity[인접 문장 유사도 계산]
+
+    Similarity --> Decision{Threshold 0.7 이상인가?}
+
+    Decision -->|YES| Merge[현재 Chunk에 추가]
+    Decision -->|NO| NewChunk[새 Chunk 생성]
+
+    Merge --> Similarity
+    NewChunk --> Similarity
+
+    Similarity --> Final[최종 Semantic Chunk 반환]
+```
+
+---
+
+## Hybrid Search + RRF 구조
+
+```mermaid
+flowchart TB
+
+    Query[사용자 질문]
+
+    Query --> Vector[Vector Retriever]
+    Query --> Keyword[Keyword Retriever]
+
+    Vector --> VectorRank[벡터 검색 순위]
+    Keyword --> KeywordRank[키워드 검색 순위]
+
+    VectorRank --> RRF
+    KeywordRank --> RRF
+
+    RRF[점수 계산]
+
+    RRF --> Merge[점수 병합]
+
+    Merge --> Sort[최종 정렬]
+
+    Sort --> Result[Top 3 Context]
+```
+
+---
+
+## SSE 스트리밍 구조
+
+```mermaid
+sequenceDiagram
+
+    autonumber
+
+    participant User
+    participant Controller as ChatController
+    participant Executor as Virtual Thread
+    participant GPT as OpenAI Streaming API
+
+    User->>Controller: /chat/stream 요청
+
+    Controller->>Executor: 가상 스레드 실행
+
+    Executor->>GPT: Streaming 요청
+
+    loop Token Streaming
+        GPT-->>Controller: Partial Token
+        Controller-->>User: SSE Chunk 전송
+    end
+
+    GPT-->>Controller: Complete
+
+    Controller-->>User: SSE 종료
+```
+
+---
+
+## Redis 기반 Chat Memory 구조
+
+```mermaid
+flowchart LR
+
+    User[사용자]
+    GPT[GPT-4o-mini]
+    Memory[MessageWindowChatMemory]
+    Redis[(Redis)]
+
+    User --> GPT
+
+    GPT --> Memory
+
+    Memory --> Redis
+
+    Redis --> Memory
+
+    Memory --> GPT
+```
+
+---
+
+## Virtual Thread 기반 비동기 처리
+
+```mermaid
+flowchart TB
+
+    Request[채팅 요청]
+
+    Request --> TaskExecutor
+
+    TaskExecutor --> VirtualThread[Virtual Thread 생성]
+
+    VirtualThread --> SecurityContext[SecurityContext 복제]
+
+    SecurityContext --> AI[AI Streaming 처리]
+
+    AI --> SSE[SSE 응답]
+```
+
+---
+
+## Tool Calling 구조
+
+```mermaid
+flowchart LR
+
+    GPT[GPT-4o-mini]
+
+    GPT --> Tool[ChatTools]
+
+    Tool --> Orders[getOrders]
+    Tool --> Order[getOrder]
+    Tool --> Products[searchProducts]
+    Tool --> Product[getProduct]
+    Tool --> Refund[createRefund]
+
+    Orders --> ApiServer
+    Order --> ApiServer
+    Product --> ApiServer
+    Refund --> ApiServer
+```
+
+---
+
+## RAGAS 평가 파이프라인
+
+```mermaid
+flowchart TB
+
+    TestCase[Test Questions]
+
+    TestCase --> Chatbot(/chat/evaluate)
+
+    Chatbot --> Answer[AI Answer]
+    Chatbot --> Contexts[Retrieved Contexts]
+
+    Answer --> RAGAS
+    Contexts --> RAGAS
+
+    GroundTruth[Ground Truth] --> RAGAS
+
+    RAGAS --> Metrics[
+      Faithfulness
+      Answer Relevancy
+      Context Precision
+      Context Recall
+    ]
+
+    Metrics --> Report[HTML Report]
+```
+
+---
+
+## OpenAI 모델 구성
+
+```mermaid
+flowchart LR
+
+    GPT[gpt-4o-mini]
+    Moderation[omni-moderation-latest]
+    Embedding[text-embedding-3-small]
+
+    GPT --> ChatResponse[채팅 응답 생성]
+
+    Moderation --> Unsafe[유해 콘텐츠 감지]
+
+    Embedding --> Vector[1536 차원 임베딩 생성]
+```
 
 ---
 

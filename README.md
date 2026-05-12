@@ -30,7 +30,8 @@
 
 # 3. 🔄 서비스 플로우
 
-## WebSocket 인증 플로우
+<details>
+<summary><h2>WebSocket 인증 플로우</h2></summary>
 
 ```mermaid
 sequenceDiagram
@@ -60,12 +61,15 @@ sequenceDiagram
         Interceptor-->>Client: 연결 거부
     end
 ```
+</details>
+
 
 <br>
 
 ---
 
-## 실시간 메시지 전송 플로우
+<details>
+<summary><h2>실시간 메시지 전송 플로우</h2></summary>
 
 ```mermaid
 sequenceDiagram
@@ -109,12 +113,14 @@ sequenceDiagram
 
     Facade->>Client: ACK SUCCESS
 ```
+</details>
 
 <br>
 
 ---
 
-## Redis Pub/Sub 멀티 서버 구조
+<details>
+<summary><h2>Redis Pub/Sub 멀티 서버 구조</h2></summary>
 
 ```mermaid
 flowchart LR
@@ -141,12 +147,14 @@ flowchart LR
         E
     end
 ```
+</details>
 
 <br>
 
 ---
 
-## 읽음 처리 플로우
+<details>
+<summary><h2>읽음 처리 플로우</h2></summary>
 
 ```mermaid
 sequenceDiagram
@@ -178,12 +186,14 @@ sequenceDiagram
 
     Other-->>Other: 읽음 상태 실시간 반영
 ```
+</details>
 
 <br>
 
 ---
 
-## Unread Count 캐시 전략
+<details>
+<summary><h2>Unread Count 캐시 전략</h2></summary>
 
 ```mermaid
 flowchart TD
@@ -198,12 +208,14 @@ flowchart TD
 
     E --> F[Unread Count 반환]
 ```
+</details>
 
 <br>
 
 ---
 
-## 채팅방 생성 동시성 처리
+<details>
+<summary><h2>채팅방 생성 동시성 처리</h2></summary>
 
 ```mermaid
 flowchart TD
@@ -224,12 +236,14 @@ flowchart TD
 
     H --> I[이미 생성된 채팅방 반환]
 ```
+</details>
 
 <br>
 
 ---
 
-## ACK 기반 메시지 상태 동기화
+<details>
+<summary><h2>ACK 기반 메시지 상태 동기화</h2></summary>
 
 ```mermaid
 sequenceDiagram
@@ -252,12 +266,14 @@ sequenceDiagram
 
     WS-->>Client: tempId 기반 상태 동기화
 ```
+</details>
 
 <br>
 
 ---
 
-## 전체 AI 챗봇 아키텍처
+<details>
+<summary><h2>전체 AI 챗봇 아키텍처</h2></summary> 
 
 ```mermaid
 flowchart TB
@@ -307,12 +323,14 @@ flowchart TB
     ChatController --> SSE
     SSE --> Client
 ```
+</details>
 
 <br>
 
 ---
 
-## 채팅 요청 처리 흐름
+<details>
+<summary><h2>채팅 요청 처리 흐름</h2></summary>
 
 ```mermaid
 sequenceDiagram
@@ -382,12 +400,14 @@ sequenceDiagram
         Assistant->>Redis: 대화 저장
     end
 ```
+</details>
 
 <br>
 
 ---
 
-## RAG 검색 구조
+<details>
+<summary><h2>RAG 검색 구조</h2></summary>
 
 ```mermaid
 flowchart LR
@@ -410,12 +430,14 @@ flowchart LR
     RRF --> TopK[상위 3개 Context]
     TopK --> GPT[GPT-4o-mini]
 ```
+</details>
 
 <br>
 
 ---
 
-## 문서 인제스천 파이프라인
+<details>
+<summary><h2>문서 인제스천 파이프라인</h2></summary>
 
 ```mermaid
 flowchart TB
@@ -438,12 +460,14 @@ flowchart TB
 
     Vectorize --> PGVector[(PGVector 저장)]
 ```
+</details>
 
 <br>
 
 ---
 
-## Semantic Chunking 내부 구조
+<details>
+<summary><h2>Semantic Chunking 내부 구조</h2></summary>
 
 ```mermaid
 flowchart TD
@@ -466,12 +490,14 @@ flowchart TD
 
     Similarity --> Final[최종 Semantic Chunk 반환]
 ```
+</details>
 
 <br>
 
 ---
 
-## Hybrid Search + RRF 구조
+<details>
+<summary><h2>Hybrid Search + RRF 구조</h2></summary>
 
 ```mermaid
 flowchart TB
@@ -495,12 +521,14 @@ flowchart TB
 
     Sort --> Result[Top 3 Context]
 ```
+</details>
 
 <br>
 
 ---
 
-## SSE 스트리밍 구조
+<details>
+<summary><h2>SSE 스트리밍 구조</h2></summary>
 
 ```mermaid
 sequenceDiagram
@@ -527,12 +555,14 @@ sequenceDiagram
 
     Controller-->>User: SSE 종료
 ```
+</details>
 
 <br>
 
 ---
 
-## Redis 기반 Chat Memory 구조
+<details>
+<summary><h2>Redis 기반 Chat Memory 구조</h2></summary>
 
 ```mermaid
 flowchart LR
@@ -552,12 +582,14 @@ flowchart LR
 
     Memory --> GPT
 ```
+</details>
 
 <br>
 
 ---
 
-## Virtual Thread 기반 비동기 처리
+<details>
+<summary><h2>Virtual Thread 기반 비동기 처리</h2></summary>
 
 ```mermaid
 flowchart TB
@@ -574,12 +606,14 @@ flowchart TB
 
     AI --> SSE[SSE 응답]
 ```
+</details>
 
 <br>
 
 ---
 
-## Tool Calling 구조
+<details>
+<summary><h2>Tool Calling 구조</h2></summary>
 
 ```mermaid
 flowchart LR
@@ -599,12 +633,14 @@ flowchart LR
     Product --> ApiServer
     Refund --> ApiServer
 ```
+</details>
 
 <br>
 
 ---
 
-## RAGAS 평가 파이프라인
+<details>
+<summary><h2>RAGAS 평가 파이프라인</h2></summary>
 
 ```mermaid
 flowchart TB
@@ -630,12 +666,14 @@ flowchart TB
 
     Metrics --> Report[HTML Report]
 ```
+</details>
 
 <br>
 
 ---
 
-## OpenAI 모델 구성
+<details>
+<summary><h2>OpenAI 모델 구성</h2></summary>
 
 ```mermaid
 flowchart LR
@@ -650,6 +688,7 @@ flowchart LR
 
     Embedding --> Vector[1536 차원 임베딩 생성]
 ```
+</details>
 
 <br>
 

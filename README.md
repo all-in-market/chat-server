@@ -8,7 +8,7 @@
 
 ## 서버 소개
 
- 채팅 서버는 멀티벤더 마켓플레이스 플랫폼의 채팅 기능을 담당하는 서버입니다. 
+ 채팅 서버는 AllInMarket의 채팅 기능을 담당하는 서버입니다. 
  구매자와 판매자 간 WebSocket 기반 실시간 채팅과, 반품·교환 정책 문서를 기반으로 고객 질문에 답변하는 RAG 기반 AI 고객 어시스턴트를 제공합니다.
 
 <br>
@@ -76,7 +76,7 @@ sequenceDiagram
     autonumber
 
     participant Client
-    participant WS as WebSocket Controller
+    participant WS as RealTimeChatController
     participant Facade as RealtimeChatFacade
     participant Service as RealtimeChatService
     participant Redis as Redis Pub/Sub

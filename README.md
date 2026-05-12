@@ -633,9 +633,7 @@ flowchart LR
 
 # 4. 🗂️ ERD
 
-```md
-![ERD](이미지_URL)
-```
+![ERD](/docs/image/ChattingServerERD.png)
 
 <br>
 

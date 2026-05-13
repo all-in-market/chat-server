@@ -5,7 +5,7 @@ import WebSocket from "websocket";
 global.WebSocket = WebSocket.w3cwebsocket;
 
 const client = new Client({
-    brokerURL: "ws://localhost:8082/chat",
+    brokerURL: "ws://localhost:8082/ws-chat",
 
     connectHeaders: {
         Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZSI6IkJVWUVSIiwiZXhwIjoxNzc3OTY4NTk1LCJpYXQiOjE3Nzc5NjQ5OTV9.xPbLjGcxNNPY-mlbcX-kmMqIcpZAJ3Mf7Y7RnrvASJ8"

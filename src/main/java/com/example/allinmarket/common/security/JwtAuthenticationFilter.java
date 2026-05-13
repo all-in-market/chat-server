@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        if (path.startsWith("/chat")) {
+        if (path.startsWith("/ws-chat")) {
             filterChain.doFilter(request, response);
             return;
         }

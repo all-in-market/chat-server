@@ -28,8 +28,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry stompEndpointRegistry) {
-        // 웹소켓 연결 엔드포인트 : ws://localhost:8080/chat
-        stompEndpointRegistry.addEndpoint("/chat")
+        // 웹소켓 연결 엔드포인트 : ws://localhost:8080/ws-chat
+        stompEndpointRegistry.addEndpoint("/ws-chat")
                 .setAllowedOriginPatterns("*"); // 테스트용 모든 도메인 허용
 
     }

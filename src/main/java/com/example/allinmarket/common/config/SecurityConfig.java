@@ -30,7 +30,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/chat","/chat/**").permitAll()
+                        .requestMatchers("/ws-chat","/ws-chat/**").permitAll()
                         .requestMatchers("/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories").permitAll()
                         .requestMatchers("/seller/auth/**").permitAll()

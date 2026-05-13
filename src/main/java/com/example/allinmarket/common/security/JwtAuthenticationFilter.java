@@ -29,6 +29,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+
+        if (path.startsWith("/ws-chat")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = extractToken(request);
 
         if (token != null) {

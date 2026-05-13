@@ -66,9 +66,7 @@ public class ChatController {
 
                 String intent = intentClassifier.classify(request.message());
 
-                log.info("[Intent] message={}, classified={}",
-                        request.message(),
-                        intent);
+                log.info("[Intent] classified={}", intent);
 
                 String memoryId = ChatConsts.SMALL_TALK.equals(intent)
                         ? "smalltalk-" + userId

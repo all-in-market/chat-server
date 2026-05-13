@@ -18,6 +18,7 @@ public class HybridContentRetriever implements ContentRetriever{
     private final KeywordContentRetriever keywordContentRetriever;
 
     public List<Content> retrieve(Query query) {
+        log.info("[Hybrid] query={}", query.text());
         log.info("[Hybrid] 검색 시작: 벡터+키워드");
 
         // 1. 벡터 검색

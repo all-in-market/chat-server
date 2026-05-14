@@ -3,6 +3,7 @@ package com.example.allinmarket.chat.controller;
 import com.example.allinmarket.chat.assistant.IntentClassifier;
 import com.example.allinmarket.chat.assistant.PolicyAssistant;
 import com.example.allinmarket.chat.assistant.SmallTalkAssistant;
+import com.example.allinmarket.chat.client.ApiServerClient;
 import com.example.allinmarket.chat.consts.ChatConsts;
 import com.example.allinmarket.chat.dto.ChatRequest;
 import com.example.allinmarket.chat.dto.EvaluateResponse;
@@ -41,6 +42,7 @@ public class ChatController {
     private final ModerationService moderationService;
     private final TaskExecutor chatTaskExecutor;
     private final ContentRetriever contentRetriever;
+    private final ApiServerClient apiServerClient;
 
 
     @PostMapping(value = "/stream",
@@ -51,13 +53,12 @@ public class ChatController {
             @RequestHeader("Authorization") String token) {
 
         SseEmitter emitter = new SseEmitter(ChatConsts.SSE_TIMEOUT);
-        AtomicReference<StreamingHandle> handleRef = new AtomicReference<>();
 
         chatTaskExecutor.execute(() -> {
             try {
 
                 if (moderationService.isFlagged(request.message())) {
-                    emitter.send("[부적절한 내용이 포함되어 있어 답변할 수 없습니다.]");
+                    emitter.send("부적절한 요청입니다.");
                     emitter.complete();
                     return;
                 }
@@ -66,88 +67,53 @@ public class ChatController {
 
                 String intent = intentClassifier.classify(request.message());
 
-                log.info("[Intent] classified={}", intent);
+                log.info("[Intent] {}", intent);
 
-                String memoryId = ChatConsts.SMALL_TALK.equals(intent)
-                        ? "smalltalk-" + userId
-                        : "policy-" + userId;
+                TokenStream tokenStream;
 
-                TokenStream tokenStream = ChatConsts.SMALL_TALK.equals(intent)
-                        ? smallTalkAssistant.chat(memoryId, request.message())
-                        : policyAssistant.chat(memoryId, request.message());
+                switch (intent) {
+
+                    case "SMALL_TALK" -> {
+                        tokenStream = smallTalkAssistant.chat(
+                                "smalltalk-" + userId,
+                                request.message()
+                        );
+                    }
+
+                    case "POLICY" -> {
+                        tokenStream = policyAssistant.chat(
+                                "policy-" + userId,
+                                request.message()
+                        );
+                    }
+
+                    case "TOOL" -> {
+                        // 🔥 핵심: Tool 직접 실행 (또는 Tool-aware Assistant로 변경 가능)
+                        String result = executeTool(request.message(), token);
+
+                        emitter.send(result);
+                        emitter.complete();
+                        return;
+                    }
+
+                    default -> throw new IllegalStateException("Unknown intent");
+                }
 
                 tokenStream
-                        .onPartialResponseWithContext((chunk, context) -> {
-
-                            handleRef.set(context.streamingHandle());
-
+                        .onPartialResponseWithContext((chunk, ctx) -> {
                             try {
                                 emitter.send(chunk.text());
-
                             } catch (Exception e) {
-
-                                log.error("[Chat] 스트리밍 전송 오류", e);
-
-                                context.streamingHandle().cancel();
-
+                                ctx.streamingHandle().cancel();
                                 emitter.completeWithError(e);
                             }
                         })
-                        .onCompleteResponse(response -> emitter.complete())
-                        .onError(e -> {
-
-                            log.error("[Chat] 스트리밍 오류: {}", e.getMessage());
-
-                            try {
-                                emitter.send("[오류가 발생했습니다. 다시 시도해주세요.]");
-                            } catch (Exception ex) {
-                                log.error("[Chat] 오류 메시지 전송 실패", ex);
-                            }
-
-                            emitter.completeWithError(e);
-                        })
+                        .onCompleteResponse(r -> emitter.complete())
+                        .onError(e -> emitter.completeWithError(e))
                         .start();
 
             } catch (Exception e) {
-
-                log.error("[Chat] 처리 오류", e);
-
                 emitter.completeWithError(e);
-            }
-        });
-
-        emitter.onTimeout(() -> {
-
-            log.info("[Chat] SSE 타임아웃");
-
-            StreamingHandle handle = handleRef.get();
-
-            if (handle != null) {
-                handle.cancel();
-            }
-
-            emitter.complete();
-        });
-
-        emitter.onCompletion(() -> {
-
-            log.info("[Chat] SSE 연결 종료");
-
-            StreamingHandle handle = handleRef.get();
-
-            if (handle != null) {
-                handle.cancel();
-            }
-        });
-
-        emitter.onError(e -> {
-
-            log.error("[Chat] SSE 오류", e);
-
-            StreamingHandle handle = handleRef.get();
-
-            if (handle != null) {
-                handle.cancel();
             }
         });
 
@@ -226,5 +192,53 @@ public class ChatController {
         return ResponseEntity.ok(
                 new EvaluateResponse(sb.toString(), contexts)
         );
+    }
+
+    private String executeTool(String message, String token) {
+
+        if (message.contains("상품") || message.contains("검색")) {
+            return apiServerClient.getProducts(token, extractKeyword(message));
+        }
+
+        if (message.contains("주문")) {
+
+            if (message.contains("목록") || message.contains("전체") || message.contains("보여")) {
+                return apiServerClient.getOrders(token);
+            }
+
+            if (message.contains("조회") || message.contains("상세")) {
+                return apiServerClient.getOrder(token, extractOrderId(message));
+            }
+        }
+
+        if (message.contains("반품") || message.contains("환불")) {
+            throw new IllegalStateException("반품은 orderId 필요");
+        }
+
+        return "처리 가능한 TOOL 요청이 아닙니다.";
+    }
+
+    private String extractKeyword(String message) {
+        if (message == null || message.isBlank()) {
+            return "";
+        }
+
+        // 불용어 제거
+        return message
+                .replaceAll("(상품|검색|찾아줘|해줘|알려줘)", "")
+                .trim();
+    }
+
+    private Long extractOrderId(String message) {
+        if (message == null) return null;
+
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\d+");
+        java.util.regex.Matcher matcher = pattern.matcher(message);
+
+        if (matcher.find()) {
+            return Long.parseLong(matcher.group());
+        }
+
+        throw new IllegalArgumentException("orderId를 찾을 수 없습니다.");
     }
 }

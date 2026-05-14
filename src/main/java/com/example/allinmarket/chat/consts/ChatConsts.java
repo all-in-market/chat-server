@@ -10,6 +10,7 @@ public final class ChatConsts {
     // Intent
     public static final String SMALL_TALK = "SMALL_TALK";
     public static final String INQUIRY = "INQUIRY";
+    public static final String TOOL = "TOOL";
 
     // Chat Memory
     public static final String MEMORY_KEY_PREFIX = "chat:memory:";

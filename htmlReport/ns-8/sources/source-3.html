@@ -1,0 +1,209 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SemanticDocumentSplitter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.chat.service</a>
+</div>
+
+<h1>Coverage Summary for Class: SemanticDocumentSplitter (com.example.allinmarket.chat.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SemanticDocumentSplitter</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    83.3%
+  </span>
+  <span class="absValue">
+    (15/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (39/39)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.chat.service;
+&nbsp;
+&nbsp;import dev.langchain4j.data.document.Document;
+&nbsp;import dev.langchain4j.data.embedding.Embedding;
+&nbsp;import dev.langchain4j.data.segment.TextSegment;
+&nbsp;import dev.langchain4j.model.embedding.EmbeddingModel;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;import java.text.BreakIterator;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Locale;
+&nbsp;
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@Component
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class SemanticDocumentSplitter {
+&nbsp;
+&nbsp;    private final EmbeddingModel embeddingModel;
+&nbsp;    private static final double SIMILARITY_THRESHOLD = 0.7;
+&nbsp;    private static final int MIN_CHUNK_SIZE = 50;
+&nbsp;
+&nbsp;    public List&lt;TextSegment&gt; split(Document document) {
+&nbsp;        // 1. 문장 단위 분리
+<b class="fc">&nbsp;        String text = document.text();</b>
+<b class="fc">&nbsp;        List&lt;String&gt; sentences = splitIntoSentences(text);</b>
+&nbsp;
+<b class="pc">&nbsp;        if (sentences.isEmpty()) return List.of();</b>
+<b class="fc">&nbsp;        if (sentences.size() == 1) return List.of(TextSegment.from(sentences.get(0)));</b>
+&nbsp;
+&nbsp;        // 2. 각 문장 임베딩
+<b class="fc">&nbsp;        List&lt;Embedding&gt; embeddings = sentences.stream()</b>
+<b class="fc">&nbsp;                .map(s -&gt; embeddingModel.embed(s).content())</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;
+&nbsp;        // 3. 인접 문장 간 유사도 계산 후 청크 분리
+<b class="fc">&nbsp;        List&lt;TextSegment&gt; chunks = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        StringBuilder currentChunk = new StringBuilder(sentences.get(0));</b>
+&nbsp;
+<b class="fc">&nbsp;        for (int i = 1; i &lt; sentences.size(); i++) {</b>
+<b class="fc">&nbsp;            double similarity = cosineSimilarity(embeddings.get(i - 1), embeddings.get(i));</b>
+<b class="fc">&nbsp;            log.debug(&quot;[SemanticChunk] 문장 {} - {} 유사도: {}&quot;, i - 1, i, similarity);</b>
+&nbsp;
+<b class="fc">&nbsp;            if (similarity &lt; SIMILARITY_THRESHOLD &amp;&amp; currentChunk.length() &gt;= MIN_CHUNK_SIZE) {</b>
+&nbsp;                // 의미가 끊기는 지점 → 새 청크 시작
+<b class="fc">&nbsp;                chunks.add(TextSegment.from(currentChunk.toString().trim()));</b>
+<b class="fc">&nbsp;                currentChunk = new StringBuilder(sentences.get(i));</b>
+&nbsp;            } else {
+&nbsp;                // 의미가 연속됨 → 현재 청크에 추가
+<b class="fc">&nbsp;                currentChunk.append(&quot;\n&quot;).append(sentences.get(i));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        // 마지막 청크 추가
+<b class="pc">&nbsp;        if (!currentChunk.isEmpty()) {</b>
+<b class="fc">&nbsp;            chunks.add(TextSegment.from(currentChunk.toString().trim()));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        log.info(&quot;[SemanticChunk] 총 {}개 문장 → {}개 청크&quot;, sentences.size(), chunks.size());</b>
+<b class="fc">&nbsp;        return chunks;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;String&gt; splitIntoSentences(String text) {
+<b class="fc">&nbsp;        BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.KOREAN);</b>
+<b class="fc">&nbsp;        iterator.setText(text);</b>
+&nbsp;
+<b class="fc">&nbsp;        List&lt;String&gt; sentences = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        for (int start = iterator.first(), end = iterator.next();</b>
+<b class="fc">&nbsp;             end != BreakIterator.DONE;</b>
+<b class="fc">&nbsp;             start = end, end = iterator.next()) {</b>
+<b class="fc">&nbsp;            String sentence = text.substring(start, end).trim();</b>
+<b class="pc">&nbsp;            if (!sentence.isBlank()) {</b>
+<b class="fc">&nbsp;                sentences.add(sentence);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        return sentences;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private double cosineSimilarity(Embedding a, Embedding b) {
+<b class="fc">&nbsp;        float[] vecA = a.vector();</b>
+<b class="fc">&nbsp;        float[] vecB = b.vector();</b>
+&nbsp;
+<b class="fc">&nbsp;        double dot = 0, normA = 0, normB = 0;</b>
+<b class="fc">&nbsp;        for (int i = 0; i &lt; vecA.length; i++) {</b>
+<b class="fc">&nbsp;            dot += vecA[i] * vecB[i];</b>
+<b class="fc">&nbsp;            normA += vecA[i] * vecA[i];</b>
+<b class="fc">&nbsp;            normB += vecB[i] * vecB[i];</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return dot / (Math.sqrt(normA) * Math.sqrt(normB));</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

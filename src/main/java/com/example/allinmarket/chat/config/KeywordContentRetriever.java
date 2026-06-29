@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Arrays;
 import java.util.List;
 
+// 키워드 기반 검색기
 @Slf4j
 @RequiredArgsConstructor
 public class KeywordContentRetriever {

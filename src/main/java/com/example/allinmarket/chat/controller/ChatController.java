@@ -156,8 +156,7 @@ public class ChatController {
 
     @PostMapping(value = "/evaluate", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<EvaluateResponse> evaluate(
-            @RequestBody ChatRequest request,
-            @RequestHeader("Authorization") String token) {
+            @RequestBody ChatRequest request) {
 
         if (moderationService.isFlagged(request.message())) {
             return ResponseEntity.ok(

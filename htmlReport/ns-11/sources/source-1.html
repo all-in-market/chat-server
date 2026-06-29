@@ -1,0 +1,203 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RealtimeChatAPIController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.realtimechat.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: RealtimeChatAPIController (com.example.allinmarket.realtimechat.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RealtimeChatAPIController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (2/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    94.1%
+  </span>
+  <span class="absValue">
+    (16/17)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.realtimechat.controller;
+&nbsp;
+&nbsp;import com.example.allinmarket.common.enums.ErrorEnum;
+&nbsp;import com.example.allinmarket.common.enums.SuccessEnum;
+&nbsp;import com.example.allinmarket.common.exception.BaseException;
+&nbsp;import com.example.allinmarket.common.response.ApiResponse;
+&nbsp;import com.example.allinmarket.common.security.UserPrincipal;
+&nbsp;import com.example.allinmarket.realtimechat.dto.RealtimeChatHistoryResponse;
+&nbsp;import com.example.allinmarket.realtimechat.dto.RealtimeChatRoomResponse;
+&nbsp;import com.example.allinmarket.realtimechat.entity.RealtimeChatRoom;
+&nbsp;import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
+&nbsp;import com.example.allinmarket.realtimechat.facade.RealtimeChatRoomFacade;
+&nbsp;import com.example.allinmarket.realtimechat.service.RealtimeChatRoomService;
+&nbsp;import com.example.allinmarket.realtimechat.service.RealtimeChatService;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.security.core.Authentication;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.security.Principal;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequiredArgsConstructor
+&nbsp;@RequestMapping(&quot;/chat/rooms&quot;)
+&nbsp;public class RealtimeChatAPIController {
+&nbsp;    private final RealtimeChatService chatService;
+&nbsp;    private final RealtimeChatRoomService chatRoomService;
+&nbsp;    private final RealtimeChatRoomFacade chatRoomFacade;
+&nbsp;
+&nbsp;    @GetMapping(&quot;/{roomId}/messages&quot;)
+&nbsp;    public ResponseEntity&lt;ApiResponse&lt;RealtimeChatHistoryResponse&gt;&gt; getChatHistory(
+&nbsp;            @PathVariable Long roomId,
+&nbsp;            @RequestParam(required = false) Long lastMessageId,
+&nbsp;            @RequestParam(defaultValue = &quot;50&quot;) int size,
+&nbsp;            Principal principal
+&nbsp;    ) {
+<b class="pc">&nbsp;        if (size &lt; 1 || size &gt; 100) {</b>
+<b class="nc">&nbsp;            throw new BaseException(ErrorEnum.INVALID_INPUT);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        UserPrincipal userPrincipal = (UserPrincipal) ((Authentication) principal).getPrincipal();</b>
+&nbsp;
+<b class="fc">&nbsp;        Long userId = userPrincipal.userId();</b>
+&nbsp;
+<b class="fc">&nbsp;        return ResponseEntity.ok(</b>
+<b class="fc">&nbsp;                ApiResponse.success(</b>
+&nbsp;                        SuccessEnum.READ_SUCCESS,
+<b class="fc">&nbsp;                        chatService.getChatHistory(roomId, userId, lastMessageId, size)</b>
+&nbsp;                )
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping
+&nbsp;    public ResponseEntity&lt;ApiResponse&lt;List&lt;RealtimeChatRoomResponse&gt;&gt;&gt; getRooms(Principal principal) {
+<b class="fc">&nbsp;        UserPrincipal userPrincipal = (UserPrincipal) ((Authentication) principal).getPrincipal();</b>
+&nbsp;
+<b class="fc">&nbsp;        Long userId = userPrincipal.userId();</b>
+&nbsp;
+<b class="fc">&nbsp;        RealtimeChatSenderType senderType = userPrincipal.senderType();</b>
+&nbsp;
+<b class="fc">&nbsp;        return ResponseEntity.ok(</b>
+<b class="fc">&nbsp;                ApiResponse.success(</b>
+&nbsp;                        SuccessEnum.READ_SUCCESS,
+<b class="fc">&nbsp;                        chatRoomService.getChatRooms(userId, senderType)</b>
+&nbsp;                )
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping
+&nbsp;    public ResponseEntity&lt;ApiResponse&lt;Long&gt;&gt; createRoom(
+&nbsp;            Principal principal,
+&nbsp;            @RequestParam Long buyerId,
+&nbsp;            @RequestParam Long sellerId
+&nbsp;    ) {
+<b class="fc">&nbsp;        UserPrincipal userPrincipal = (UserPrincipal) ((Authentication) principal).getPrincipal();</b>
+&nbsp;
+<b class="fc">&nbsp;        Long roomId = chatRoomFacade.createRoom(userPrincipal, buyerId, sellerId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return ResponseEntity.status(HttpStatus.CREATED)</b>
+<b class="fc">&nbsp;                .body(ApiResponse.success(</b>
+&nbsp;                        SuccessEnum.CREATE_SUCCESS,
+&nbsp;                        roomId)
+&nbsp;        );
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

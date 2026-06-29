@@ -1,0 +1,179 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RedisUnreadService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.realtimechat.service</a>
+</div>
+
+<h1>Coverage Summary for Class: RedisUnreadService (com.example.allinmarket.realtimechat.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RedisUnreadService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.realtimechat.service;
+&nbsp;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.data.redis.core.RedisTemplate;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;
+&nbsp;import java.time.Duration;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class RedisUnreadService {
+&nbsp;    private final RedisTemplate&lt;String, Object&gt; redisTemplate;
+&nbsp;    private final RealtimeReadStatusService readStatusService;
+&nbsp;
+&nbsp;    // 특정 유저 unread 카운트 증가
+&nbsp;    public void incrementUnread(Long roomId, Long userId) {
+<b class="nc">&nbsp;        String key = generateKey(roomId);</b>
+&nbsp;
+<b class="nc">&nbsp;        redisTemplate.opsForHash().increment(key, userId.toString(), 1);</b>
+&nbsp;
+<b class="nc">&nbsp;        redisTemplate.expire(key, Duration.ofDays(7));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 특정 유저 unread 조회
+&nbsp;    public int getUnread(Long roomId, Long userId) {
+<b class="nc">&nbsp;        String key = generateKey(roomId);</b>
+<b class="nc">&nbsp;        String field = userId.toString();</b>
+&nbsp;
+<b class="nc">&nbsp;        Object value = redisTemplate.opsForHash().get(key, field);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (value != null) {</b>
+<b class="nc">&nbsp;            return Integer.parseInt(value.toString());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        synchronized ((key + field).intern()) {</b>
+<b class="nc">&nbsp;            Object retry = redisTemplate.opsForHash().get(key, field);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (retry != null) {</b>
+<b class="nc">&nbsp;                return Integer.parseInt(retry.toString());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            int unread = readStatusService.calculateUnreadFromDB(roomId, userId);</b>
+&nbsp;
+<b class="nc">&nbsp;            redisTemplate.opsForHash().put(key, field, unread);</b>
+<b class="nc">&nbsp;            redisTemplate.expire(key, Duration.ofDays(7));</b>
+&nbsp;
+<b class="nc">&nbsp;            return unread;</b>
+<b class="nc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 메세지 확인 시 unread 초기화
+&nbsp;    public void resetUnread(Long roomId, Long userId) {
+<b class="nc">&nbsp;        redisTemplate.opsForHash().delete(generateKey(roomId), userId.toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Map&lt;Object, Object&gt; getAllUnread(Long roomId) {
+<b class="nc">&nbsp;        return redisTemplate.opsForHash().entries(generateKey(roomId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String generateKey(Long roomId) {
+<b class="nc">&nbsp;        return &quot;unread:room:&quot; + roomId;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

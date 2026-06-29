@@ -1,0 +1,189 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RedisSubscriber</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.common.redis</a>
+</div>
+
+<h1>Coverage Summary for Class: RedisSubscriber (com.example.allinmarket.common.redis)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RedisSubscriber</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.common.redis;
+&nbsp;
+&nbsp;import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
+&nbsp;import com.example.allinmarket.realtimechat.dto.RealtimeReadDto;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;
+&nbsp;import org.springframework.data.redis.connection.Message;
+&nbsp;import org.springframework.messaging.simp.SimpMessageSendingOperations;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class RedisSubscriber {
+&nbsp;    private final SimpMessageSendingOperations simpMessageSendingOperations;
+&nbsp;    private final ObjectMapper objectMapper;
+&nbsp;
+&nbsp;    public void onMessage(Message message, byte[] pattern) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String channel = new String(message.getChannel());</b>
+&nbsp;
+<b class="nc">&nbsp;            String json = new String(message.getBody(), StandardCharsets.UTF_8);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (channel.startsWith(&quot;chat.room.&quot;)) {</b>
+<b class="nc">&nbsp;                RealtimeChatMessageDto dto = objectMapper.readValue(json, RealtimeChatMessageDto.class);</b>
+&nbsp;
+<b class="nc">&nbsp;                Long roomIdFromChannel = extractRoomId(channel, &quot;chat.room.&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (!roomIdFromChannel.equals(dto.roomId())) {</b>
+<b class="nc">&nbsp;                    log.warn(&quot;roomId가 올바르지 않습니다 (message). channel = {}, payload = {}&quot;, roomIdFromChannel, dto.roomId());</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+&nbsp;                // /sub/chat/room/{roomId}를 구독 중인 사람들에게 메세지 전달
+<b class="nc">&nbsp;                simpMessageSendingOperations.convertAndSend(&quot;/sub/chat/room/&quot; + dto.roomId(), dto);</b>
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;Redis 수신: channel = {}, roomId = {}&quot;, channel, roomIdFromChannel);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (channel.startsWith(&quot;chat.read.&quot;)) {</b>
+<b class="nc">&nbsp;                RealtimeReadDto dto = objectMapper.readValue(json, RealtimeReadDto.class);</b>
+&nbsp;
+<b class="nc">&nbsp;                Long roomIdFromChannel = extractRoomId(channel, &quot;chat.read.&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (!roomIdFromChannel.equals(dto.roomId())) {</b>
+<b class="nc">&nbsp;                    log.warn(&quot;roomId가 올바르지 않습니다 (read). channel = {}, payload = {}&quot;, roomIdFromChannel, dto.roomId());</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                simpMessageSendingOperations.convertAndSend(&quot;/sub/chat/read/&quot; + dto.roomId(), dto);</b>
+&nbsp;
+<b class="nc">&nbsp;                log.info(&quot;Redis 수신: channel = {}, roomId = {}&quot;, channel, roomIdFromChannel);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;Redis 메세지 처리 실패&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Long extractRoomId(String channel, String prefix) {
+&nbsp;        try {
+<b class="nc">&nbsp;            return Long.parseLong(channel.substring(prefix.length()));</b>
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;유표하지 않은 채널 입니다: {}&quot;, channel, e);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

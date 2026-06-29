@@ -42,6 +42,7 @@ public class RagConfig {
 
         int port = (uri.getPort() == -1) ? 5432 : uri.getPort();
 
+        // 기존 PostgreSQL db 안에 flyway로 생성해둔 "langchain4j_embedding_store" 라는 이름의 PGVector 전용 테이블을 사용할 것이라고 연결하는 설정
         return PgVectorEmbeddingStore.builder()
                 .host(uri.getHost())
                 .port(port)
@@ -53,12 +54,14 @@ public class RagConfig {
                 .build();
     }
 
+    // vector DB 에서 문서를 검색할 검색기를 생성하는 코드
     @Bean
     public ContentRetriever contentRetriever(
             EmbeddingStore<TextSegment> embeddingStore,
             EmbeddingModel embeddingModel,
             JdbcTemplate jdbcTemplate) {
 
+        // 의미적으로 유사한 결과만 조회하는 검색기
         EmbeddingStoreContentRetriever vectorRetriever = EmbeddingStoreContentRetriever.builder()
                 .embeddingStore(embeddingStore)
                 .embeddingModel(embeddingModel)
@@ -66,8 +69,10 @@ public class RagConfig {
                 .minScore(0.5)
                 .build();
 
+        // 해당 keyword를 포함하는 결과를 조회하는 검색기
         KeywordContentRetriever keywordRetriever = new KeywordContentRetriever(jdbcTemplate);
 
+        // 두 검색기를 합친 하이브리드 검색기를 사용
         return new HybridContentRetriever(vectorRetriever, keywordRetriever);
     }
 }

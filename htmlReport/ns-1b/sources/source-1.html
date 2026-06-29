@@ -1,0 +1,97 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > IntentClassifier</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.chat.assistant</a>
+</div>
+
+<h1>Coverage Summary for Class: IntentClassifier (com.example.allinmarket.chat.assistant)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">IntentClassifier$MockitoMock$2DNNfIR0</td>
+  </tr>
+  <tr>
+    <td class="name">IntentClassifier$MockitoMock$2DNNfIR0$auxiliary$4xRcyrBi</td>
+  </tr>
+  <tr>
+    <td class="name">IntentClassifier$MockitoMock$2DNNfIR0$auxiliary$iwguyI0o</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.chat.assistant;
+&nbsp;
+&nbsp;import dev.langchain4j.service.SystemMessage;
+&nbsp;import dev.langchain4j.service.UserMessage;
+&nbsp;import dev.langchain4j.service.spring.AiService;
+&nbsp;
+&nbsp;@AiService
+&nbsp;public interface IntentClassifier {
+&nbsp;
+&nbsp;    @SystemMessage(&quot;&quot;&quot;
+&nbsp;            사용자의 입력을 분류하세요.
+&nbsp;            
+&nbsp;            SMALL_TALK: 인사, 감사, 단순 대화, 잡답
+&nbsp;            INQUIRY: 주문, 상품, 반품, 교환, 정책 등 서비스 관련 질문/요청
+&nbsp;            
+&nbsp;            반드시 SMALL_TALK 또는 INQUIRY 중 하나만 반환하세요.
+&nbsp;            다른 텍스트는 절대 포함하지 마세요.
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    String classify(@UserMessage String message);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

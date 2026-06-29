@@ -3,6 +3,7 @@ package com.example.allinmarket.chat.config;
 import com.example.allinmarket.chat.assistant.IntentClassifier;
 import com.example.allinmarket.chat.assistant.PolicyAssistant;
 import com.example.allinmarket.chat.assistant.SmallTalkAssistant;
+import com.example.allinmarket.chat.tool.ChatTools;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -36,11 +37,14 @@ class AssistantConfigTest {
             ContentRetriever contentRetriever =
                     mock(ContentRetriever.class);
 
+            ChatTools chatTools = mock(ChatTools.class);
+
             PolicyAssistant assistant =
                     assistantConfig.policyAssistant(
                             chatModel,
                             chatMemoryProvider,
-                            contentRetriever
+                            contentRetriever,
+                            chatTools
                     );
 
             assertThat(assistant).isNotNull();

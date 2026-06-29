@@ -18,6 +18,7 @@ import org.springframework.web.client.RestClientException;
 @RequiredArgsConstructor
 public class ApiServerClient {
 
+    // 다른 서버에 HTTP 요청을 보내기위한 객체
     private final RestClient apiServerRestClient;
 
     // 주문 목록 조회

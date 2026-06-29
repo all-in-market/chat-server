@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+// RAG에서 사용할 문서를 vectorDB에 저장하는 역할
 @Slf4j
 @Service
 @RequiredArgsConstructor

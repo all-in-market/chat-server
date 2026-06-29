@@ -1,0 +1,193 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RedisConfig</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.common.redis</a>
+</div>
+
+<h1>Coverage Summary for Class: RedisConfig (com.example.allinmarket.common.redis)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RedisConfig</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.common.redis;
+&nbsp;
+&nbsp;import org.redisson.Redisson;
+&nbsp;import org.redisson.api.RedissonClient;
+&nbsp;import org.redisson.config.Config;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Bean;
+&nbsp;import org.springframework.context.annotation.Configuration;
+&nbsp;import org.springframework.data.redis.connection.RedisConnectionFactory;
+&nbsp;import org.springframework.data.redis.core.RedisTemplate;
+&nbsp;import org.springframework.data.redis.listener.PatternTopic;
+&nbsp;import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+&nbsp;import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+&nbsp;import org.springframework.data.redis.serializer.RedisSerializer;
+&nbsp;import org.springframework.data.redis.serializer.StringRedisSerializer;
+&nbsp;
+&nbsp;@Configuration
+<b class="nc">&nbsp;public class RedisConfig {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${spring.data.redis.host}&quot;)
+&nbsp;    private String redisHost;
+&nbsp;
+&nbsp;    @Value(&quot;${spring.data.redis.port}&quot;)
+&nbsp;    private int redisPort;
+&nbsp;
+&nbsp;    @Value(&quot;${spring.data.redis.ssl.enabled:false}&quot;)
+&nbsp;    private boolean sslEnabled;
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public RedissonClient redissonClient() {
+<b class="nc">&nbsp;        Config config = new Config();</b>
+<b class="nc">&nbsp;        String scheme = sslEnabled ? &quot;rediss&quot; : &quot;redis&quot;;</b>
+<b class="nc">&nbsp;        config.useSingleServer()</b>
+<b class="nc">&nbsp;                .setAddress(scheme + &quot;://&quot; + redisHost + &quot;:&quot; + redisPort);</b>
+<b class="nc">&nbsp;        return Redisson.create(config);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public RedisTemplate&lt;String, Object&gt; redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+<b class="nc">&nbsp;        RedisTemplate&lt;String, Object&gt; template = new RedisTemplate&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        template.setConnectionFactory(redisConnectionFactory);</b>
+&nbsp;
+<b class="nc">&nbsp;        template.setKeySerializer(new StringRedisSerializer());</b>
+&nbsp;
+<b class="nc">&nbsp;        template.setValueSerializer(RedisSerializer.json());</b>
+&nbsp;
+<b class="nc">&nbsp;        template.setHashKeySerializer(new StringRedisSerializer());</b>
+&nbsp;
+<b class="nc">&nbsp;        template.setHashValueSerializer(RedisSerializer.json());</b>
+&nbsp;
+<b class="nc">&nbsp;        template.afterPropertiesSet();</b>
+&nbsp;
+<b class="nc">&nbsp;        return template;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean // Redis 메세지 리스터 컨테이너 : Redis로부터 메세지를 받으면 실행
+&nbsp;    // 실제 메세지를 처리하는 어댑터 - RedisSubscriber 직접 연결
+&nbsp;    public RedisMessageListenerContainer redisMessageListenerContainer(
+&nbsp;            RedisConnectionFactory redisConnectionFactory,
+&nbsp;            RedisSubscriber redisSubscriber
+&nbsp;    ) {
+<b class="nc">&nbsp;        RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();</b>
+&nbsp;
+<b class="nc">&nbsp;        redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);</b>
+&nbsp;
+<b class="nc">&nbsp;        redisMessageListenerContainer.addMessageListener(redisSubscriber::onMessage, new PatternTopic(&quot;chat.room.*&quot;));</b>
+<b class="nc">&nbsp;        redisMessageListenerContainer.addMessageListener(redisSubscriber::onMessage, new PatternTopic(&quot;chat.read.*&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;        return redisMessageListenerContainer;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;//    @Bean
+&nbsp;//    public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber) {
+&nbsp;//        return new MessageListenerAdapter(redisSubscriber, &quot;onMessage&quot;);
+&nbsp;//    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,187 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HybridContentRetriever</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.chat.config</a>
+</div>
+
+<h1>Coverage Summary for Class: HybridContentRetriever (com.example.allinmarket.chat.config)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HybridContentRetriever</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.chat.config;
+&nbsp;
+&nbsp;import com.example.allinmarket.chat.consts.ChatConsts;
+&nbsp;import dev.langchain4j.rag.content.Content;
+&nbsp;import dev.langchain4j.rag.content.retriever.ContentRetriever;
+&nbsp;import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
+&nbsp;import dev.langchain4j.rag.query.Query;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;
+&nbsp;import java.util.*;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class HybridContentRetriever implements ContentRetriever{
+&nbsp;
+&nbsp;    private final EmbeddingStoreContentRetriever vectorContentRetriever;
+&nbsp;    private final KeywordContentRetriever keywordContentRetriever;
+&nbsp;
+&nbsp;    public List&lt;Content&gt; retrieve(Query query) {
+<b class="nc">&nbsp;        log.info(&quot;[Hybrid] 검색 시작: 벡터+키워드&quot;);</b>
+&nbsp;
+&nbsp;        // 1. 벡터 검색
+<b class="nc">&nbsp;        List&lt;Content&gt; vectorResults = vectorContentRetriever.retrieve(query);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[Vector] {}개 결과&quot;, vectorResults.size());</b>
+&nbsp;
+&nbsp;        // 2. 키워드 검색
+<b class="nc">&nbsp;        List&lt;Content&gt; keywordResults = keywordContentRetriever.retrieve(query);</b>
+<b class="nc">&nbsp;        log.debug(&quot;[Keyword] {}개 결과&quot;, keywordResults.size());</b>
+&nbsp;
+&nbsp;        // 3. RRF 점수 계산
+<b class="nc">&nbsp;        Map&lt;String, Double&gt; rrfScores = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        Map&lt;String, Content&gt; contentMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;        // 벡터 검색 결과 점수 부여
+<b class="nc">&nbsp;        for (int i = 0; i &lt; vectorResults.size(); i++) {</b>
+<b class="nc">&nbsp;            Content content = vectorResults.get(i);</b>
+<b class="nc">&nbsp;            String key = getKey(content);</b>
+<b class="nc">&nbsp;            double score = 1.0 / (ChatConsts.RRF_K + i + 1);</b>
+<b class="nc">&nbsp;            rrfScores.merge(key, score, Double::sum);</b>
+<b class="nc">&nbsp;            contentMap.put(key, content);</b>
+<b class="nc">&nbsp;            log.debug(&quot;[RRF-Vector] 순위: {}, 점수: {}&quot;, i + 1, String.format(Locale.ROOT, &quot;%.4f&quot;, score));</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 키워드 검색 결과 점수 부여
+<b class="nc">&nbsp;        for (int i = 0; i &lt; keywordResults.size(); i++) {</b>
+<b class="nc">&nbsp;            Content content = keywordResults.get(i);</b>
+<b class="nc">&nbsp;            String key = getKey(content);</b>
+<b class="nc">&nbsp;            double score = 1.0 / (ChatConsts.RRF_K + i + 1);</b>
+<b class="nc">&nbsp;            rrfScores.merge(key, score, Double::sum);</b>
+<b class="nc">&nbsp;            contentMap.put(key, content);</b>
+<b class="nc">&nbsp;            log.debug(&quot;[RRF-Vector] 순위: {}, 점수: {}&quot;, i + 1, String.format(Locale.ROOT, &quot;%.4f&quot;, score));</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 4. RRF 점수 기준 정렬 후 상위 MAX_RESULTS 반환
+<b class="nc">&nbsp;        List&lt;Content&gt; result = rrfScores.entrySet().stream()</b>
+<b class="nc">&nbsp;                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))</b>
+<b class="nc">&nbsp;                .peek(entry -&gt; log.debug(&quot;[RRF-Final] 최종 점수: {}&quot;, String.format(Locale.ROOT, &quot;%.4f&quot;, entry.getValue())))</b>
+<b class="nc">&nbsp;                .limit(ChatConsts.HYBRID_FINAL_SIZE)</b>
+<b class="nc">&nbsp;                .map(entry -&gt; contentMap.get(entry.getKey()))</b>
+<b class="nc">&nbsp;                .toList();</b>
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;[Hybrid] 최종: {}개 반환&quot;, result.size());</b>
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getKey(Content content) {
+<b class="nc">&nbsp;        String embeddingId = content.textSegment().metadata().getString(&quot;embedding_id&quot;);</b>
+<b class="nc">&nbsp;        return embeddingId != null ? embeddingId : content.textSegment().text();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

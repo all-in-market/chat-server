@@ -1,0 +1,239 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RealtimeChatRoomService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.realtimechat.service</a>
+</div>
+
+<h1>Coverage Summary for Class: RealtimeChatRoomService (com.example.allinmarket.realtimechat.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RealtimeChatRoomService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.realtimechat.service;
+&nbsp;
+&nbsp;import com.example.allinmarket.common.enums.ErrorEnum;
+&nbsp;import com.example.allinmarket.common.exception.BaseException;
+&nbsp;import com.example.allinmarket.realtimechat.dto.RealtimeChatRoomResponse;
+&nbsp;import com.example.allinmarket.realtimechat.entity.RealtimeChatParticipant;
+&nbsp;import com.example.allinmarket.realtimechat.entity.RealtimeChatRoom;
+&nbsp;import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
+&nbsp;import com.example.allinmarket.realtimechat.repository.RealtimeChatParticipantRepository;
+&nbsp;import com.example.allinmarket.realtimechat.repository.RealtimeChatRoomRepository;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.dao.DataIntegrityViolationException;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;@Transactional(readOnly = true)
+&nbsp;public class RealtimeChatRoomService {
+&nbsp;    private final RealtimeChatRoomRepository chatRoomRepository;
+&nbsp;    private final RealtimeChatParticipantRepository chatParticipantRepository;
+&nbsp;    private final RedisUnreadService unreadService;
+&nbsp;    private final RealtimeChatProvider chatProvider;
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    public RealtimeChatRoom getOrCreateRoom(Long buyerId, Long sellerId) {
+&nbsp;        // 기존 방 조회
+<b class="nc">&nbsp;        return chatRoomRepository.findByBuyerIdAndSellerId(buyerId, sellerId).orElseGet(</b>
+<b class="nc">&nbsp;                () -&gt; createRoomSafely(buyerId, sellerId)</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;RealtimeChatRoomResponse&gt; getChatRooms(Long userId, RealtimeChatSenderType senderType) {
+&nbsp;        // 내가 속한 채팅방 조회
+<b class="nc">&nbsp;        List&lt;RealtimeChatRoom&gt; rooms = chatRoomRepository.findRoomsByUserId(userId);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (rooms.isEmpty()) return List.of();</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;Long&gt; roomIds = rooms.stream().map(RealtimeChatRoom::getId).toList();</b>
+&nbsp;
+&nbsp;        // N+1 해결을 위한 채팅방들의 모든 참여자 정보를 한번에 조회
+<b class="nc">&nbsp;        List&lt;RealtimeChatParticipant&gt; allParticipants = chatParticipantRepository.findAllByRealtimeChatRoomIdIn(roomIds);</b>
+&nbsp;
+&nbsp;        // 채팅방 ID 별로 참여자 그룹화
+<b class="nc">&nbsp;        Map&lt;Long, List&lt;RealtimeChatParticipant&gt;&gt; participantMap = allParticipants.stream()</b>
+<b class="nc">&nbsp;                .collect(Collectors.groupingBy(p -&gt; p.getRealtimeChatRoom().getId()));</b>
+&nbsp;
+&nbsp;        // 성능 최적화를 위한 상대방 이름 한번에 조회
+<b class="nc">&nbsp;        Map&lt;Long, String&gt; opponentMap = getOpponentNameMap(roomIds, userId, senderType, participantMap);</b>
+&nbsp;
+<b class="nc">&nbsp;        return rooms.stream()</b>
+<b class="nc">&nbsp;                .map(room -&gt; {</b>
+&nbsp;                    // unread count (Redis)
+<b class="nc">&nbsp;                    int unreadCount = unreadService.getUnread(room.getId(), userId);</b>
+&nbsp;
+&nbsp;                    // 해당 방의 참여자 중 나를 제외한 첫 번째 사람을 상대방으로 간주
+<b class="nc">&nbsp;                    Long opponentId = participantMap.getOrDefault(room.getId(), List.of()).stream()</b>
+<b class="nc">&nbsp;                            .filter(p -&gt; !p.getUserId().equals(userId))</b>
+<b class="nc">&nbsp;                            .map(RealtimeChatParticipant::getUserId)</b>
+<b class="nc">&nbsp;                            .findFirst()</b>
+<b class="nc">&nbsp;                            .orElse(null);</b>
+&nbsp;
+<b class="nc">&nbsp;                    return new RealtimeChatRoomResponse(</b>
+<b class="nc">&nbsp;                            room.getId(),</b>
+<b class="nc">&nbsp;                            room.getRoomName(),</b>
+<b class="nc">&nbsp;                            room.getLastMessage() == null ? &quot;&quot; : room.getLastMessage(),</b>
+<b class="nc">&nbsp;                            room.getLastMessageTime(),</b>
+&nbsp;                            unreadCount,
+<b class="nc">&nbsp;                            opponentMap.getOrDefault(opponentId, &quot;알 수 없음&quot;)</b>
+&nbsp;                    );
+&nbsp;                })
+<b class="nc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;Long, String&gt; getOpponentNameMap(
+&nbsp;            List&lt;Long&gt; roomIds,
+&nbsp;            Long userId,
+&nbsp;            RealtimeChatSenderType senderType,
+&nbsp;            Map&lt;Long, List&lt;RealtimeChatParticipant&gt;&gt; participantsByRoom
+&nbsp;    ) {
+&nbsp;
+&nbsp;        // 상대방 정보 조회를 위한 모든 상대방 ID 추출
+<b class="nc">&nbsp;        List&lt;Long&gt; opponentIds = participantsByRoom.values().stream()</b>
+<b class="nc">&nbsp;                .flatMap(List::stream)</b>
+<b class="nc">&nbsp;                .filter(p -&gt; !p.getUserId().equals(userId))</b>
+<b class="nc">&nbsp;                .map(RealtimeChatParticipant::getUserId)</b>
+<b class="nc">&nbsp;                .distinct()</b>
+<b class="nc">&nbsp;                .toList();</b>
+&nbsp;
+&nbsp;        // 상대방 타입 결정 (내가 구매자면 상대방은 판매자)
+<b class="nc">&nbsp;        RealtimeChatSenderType opponentType = (senderType == RealtimeChatSenderType.BUYER)</b>
+<b class="nc">&nbsp;                ? RealtimeChatSenderType.SELLER : RealtimeChatSenderType.BUYER;</b>
+&nbsp;
+&nbsp;        // 이름 일괄 조회
+<b class="nc">&nbsp;        return chatProvider.getUserNames(opponentIds, opponentType);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private RealtimeChatRoom createRoomSafely(Long buyerId, Long sellerId) {
+&nbsp;        try {
+&nbsp;            // 채팅방 생성
+<b class="nc">&nbsp;            RealtimeChatRoom chatRoom = chatRoomRepository.save(</b>
+<b class="nc">&nbsp;                    RealtimeChatRoom.of(buyerId, sellerId)</b>
+&nbsp;            );
+&nbsp;
+&nbsp;            // 참여자 2명 등록
+<b class="nc">&nbsp;            chatParticipantRepository.save(RealtimeChatParticipant.of(buyerId, chatRoom));</b>
+&nbsp;
+<b class="nc">&nbsp;            chatParticipantRepository.save(RealtimeChatParticipant.of(sellerId, chatRoom));</b>
+&nbsp;
+<b class="nc">&nbsp;            return chatRoom;</b>
+&nbsp;
+&nbsp;        } catch (DataIntegrityViolationException e) {
+&nbsp;            // 동시 요청으로 이미 생성된 경우
+<b class="nc">&nbsp;            return chatRoomRepository.findByBuyerIdAndSellerId(buyerId, sellerId).orElseThrow(</b>
+<b class="nc">&nbsp;                    () -&gt; new BaseException(ErrorEnum.CHAT_ROOM_ALREADY_EXISTS)</b>
+&nbsp;            );
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

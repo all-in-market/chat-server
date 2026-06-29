@@ -1,0 +1,141 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > QCreatableEntity</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.common.entity</a>
+</div>
+
+<h1>Coverage Summary for Class: QCreatableEntity (com.example.allinmarket.common.entity)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">QCreatableEntity</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.common.entity;
+&nbsp;
+&nbsp;import static com.querydsl.core.types.PathMetadataFactory.*;
+&nbsp;
+&nbsp;import com.querydsl.core.types.dsl.*;
+&nbsp;
+&nbsp;import com.querydsl.core.types.PathMetadata;
+&nbsp;import javax.annotation.processing.Generated;
+&nbsp;import com.querydsl.core.types.Path;
+&nbsp;
+&nbsp;
+&nbsp;/**
+&nbsp; * QCreatableEntity is a Querydsl query type for CreatableEntity
+&nbsp; */
+&nbsp;@Generated(&quot;com.querydsl.codegen.DefaultSupertypeSerializer&quot;)
+&nbsp;public class QCreatableEntity extends EntityPathBase&lt;CreatableEntity&gt; {
+&nbsp;
+&nbsp;    private static final long serialVersionUID = -1466609407L;
+&nbsp;
+<b class="nc">&nbsp;    public static final QCreatableEntity creatableEntity = new QCreatableEntity(&quot;creatableEntity&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;    public final DateTimePath&lt;java.time.LocalDateTime&gt; createdAt = createDateTime(&quot;createdAt&quot;, java.time.LocalDateTime.class);</b>
+&nbsp;
+&nbsp;    public QCreatableEntity(String variable) {
+<b class="nc">&nbsp;        super(CreatableEntity.class, forVariable(variable));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public QCreatableEntity(Path&lt;? extends CreatableEntity&gt; path) {
+<b class="nc">&nbsp;        super(path.getType(), path.getMetadata());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public QCreatableEntity(PathMetadata metadata) {
+<b class="nc">&nbsp;        super(CreatableEntity.class, metadata);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,290 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RealtimeChatService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.realtimechat.service</a>
+</div>
+
+<h1>Coverage Summary for Class: RealtimeChatService (com.example.allinmarket.realtimechat.service)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RealtimeChatService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RealtimeChatService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/41)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.realtimechat.service;
+&nbsp;
+&nbsp;import com.example.allinmarket.common.enums.ErrorEnum;
+&nbsp;import com.example.allinmarket.common.exception.BaseException;
+&nbsp;import com.example.allinmarket.common.redis.RedisPublisher;
+&nbsp;import com.example.allinmarket.realtimechat.dto.*;
+&nbsp;import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
+&nbsp;import com.example.allinmarket.realtimechat.entity.RealtimeChatRoom;
+&nbsp;import com.example.allinmarket.realtimechat.entity.RealtimeReadStatus;
+&nbsp;import com.example.allinmarket.realtimechat.repository.RealtimeChatMessageRepository;
+&nbsp;import com.example.allinmarket.realtimechat.repository.RealtimeChatParticipantRepository;
+&nbsp;import com.example.allinmarket.realtimechat.repository.RealtimeChatRoomRepository;
+&nbsp;import com.example.allinmarket.realtimechat.repository.RealtimeReadStatusRepository;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.transaction.support.TransactionSynchronization;
+&nbsp;import org.springframework.transaction.support.TransactionSynchronizationManager;
+&nbsp;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;@Transactional(readOnly = true)
+&nbsp;public class RealtimeChatService {
+&nbsp;    private final RealtimeChatMessageRepository chatMessageRepository;
+&nbsp;    private final RealtimeReadStatusRepository readStatusRepository;
+&nbsp;    private final RealtimeChatParticipantRepository chatParticipantRepository;
+&nbsp;    private final RealtimeChatRoomRepository chatRoomRepository;
+&nbsp;    private final RedisUnreadService unreadService;
+&nbsp;    private final RedisPublisher redisPublisher;
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    public RealtimeChatMessage save(RealtimeChatMessageDto dto, Long userId) {
+<b class="nc">&nbsp;        RealtimeChatMessage chatMessage = RealtimeChatMessage.of(</b>
+<b class="nc">&nbsp;                dto.roomId(),</b>
+&nbsp;                userId,
+<b class="nc">&nbsp;                dto.message()</b>
+&nbsp;        );
+&nbsp;
+<b class="nc">&nbsp;        return chatMessageRepository.save(chatMessage);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    public void read(Long roomId, Long userId, Long messageId) {
+<b class="nc">&nbsp;        validateParticipant(roomId, userId);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (messageId == null) {</b>
+<b class="nc">&nbsp;            throw new BaseException(ErrorEnum.INVALID_INPUT);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        boolean exists = chatMessageRepository.existsByIdAndRoomId(roomId, messageId);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!exists) {</b>
+<b class="nc">&nbsp;            throw new BaseException(ErrorEnum.INVALID_INPUT);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        RealtimeReadStatus readStatus = readStatusRepository.findByRoomIdAndUserId(roomId, userId).orElseGet(</b>
+<b class="nc">&nbsp;                () -&gt; RealtimeReadStatus.of(roomId, userId, 0L)</b>
+&nbsp;        );
+&nbsp;
+<b class="nc">&nbsp;        readStatus.updateLastRead(messageId);</b>
+&nbsp;
+<b class="nc">&nbsp;        readStatusRepository.save(readStatus);</b>
+&nbsp;
+<b class="nc">&nbsp;        TransactionSynchronizationManager.registerSynchronization(</b>
+<b class="nc">&nbsp;                new TransactionSynchronization() {</b>
+&nbsp;                    @Override
+&nbsp;                    public void afterCommit() {
+<b class="nc">&nbsp;                        unreadService.resetUnread(roomId, userId);</b>
+&nbsp;
+<b class="nc">&nbsp;                        redisPublisher.publishRead(</b>
+&nbsp;                                roomId,
+&nbsp;                                new RealtimeReadDto(roomId, userId, messageId)
+&nbsp;                        );
+&nbsp;                    }
+&nbsp;                }
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;Long&gt; getParticipantIds(Long roomId) {
+<b class="nc">&nbsp;        return chatParticipantRepository.findUserIdsByRoomId(roomId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void validateParticipant(Long roomId, Long userId) {
+<b class="nc">&nbsp;        boolean exists = chatParticipantRepository.existsByRealtimeChatRoomIdAndUserId(roomId, userId);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!exists) {</b>
+<b class="nc">&nbsp;            throw new BaseException(ErrorEnum.CHAT_ROOM_FORBIDDEN);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public RealtimeChatHistoryResponse getChatHistory(Long roomId, Long userId, Long lastMessageId, int size) {
+<b class="nc">&nbsp;        if (size &lt; 1 || size &gt; 100) {</b>
+<b class="nc">&nbsp;            throw new BaseException(ErrorEnum.INVALID_INPUT);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        validateParticipant(roomId, userId);</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;RealtimeChatMessage&gt; messages = chatMessageRepository.findMessages(</b>
+&nbsp;                roomId,
+&nbsp;                lastMessageId,
+<b class="nc">&nbsp;                PageRequest.of(0, size + 1)</b>
+&nbsp;        );
+&nbsp;
+<b class="nc">&nbsp;        boolean hasNext = messages.size() &gt; size;</b>
+&nbsp;
+<b class="nc">&nbsp;        if (hasNext) {</b>
+<b class="nc">&nbsp;            messages = messages.subList(0, size);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 정렬 전 원본 리스트(내림차순)에서 마지막 요소 = 다음 커서
+<b class="nc">&nbsp;        Long nextCursor = messages.isEmpty() ? null : messages.get(messages.size() - 1).getId();</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;RealtimeChatMessageResponse&gt; responses = messages.stream()</b>
+<b class="nc">&nbsp;                .map(RealtimeChatMessageResponse::from)</b>
+<b class="nc">&nbsp;                .sorted(Comparator.comparing(RealtimeChatMessageResponse::messageId))</b>
+<b class="nc">&nbsp;                .toList();</b>
+&nbsp;
+<b class="nc">&nbsp;        return new RealtimeChatHistoryResponse(responses, nextCursor, hasNext);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    public void updateLastMessage(Long roomId, String lastMessage, LocalDateTime lastMessageTime) {
+<b class="nc">&nbsp;        int updated = chatRoomRepository.updateLastMessageIfNewer(roomId, lastMessage, lastMessageTime);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (updated == 0) {</b>
+<b class="nc">&nbsp;            boolean exists = chatRoomRepository.existsById(roomId);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (!exists) {</b>
+<b class="nc">&nbsp;                throw new BaseException(ErrorEnum.CHAT_ROOM_NOT_FOUND);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

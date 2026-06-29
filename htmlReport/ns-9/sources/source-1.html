@@ -1,0 +1,151 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ChatTools</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.chat.tool</a>
+</div>
+
+<h1>Coverage Summary for Class: ChatTools (com.example.allinmarket.chat.tool)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ChatTools</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.chat.tool;
+&nbsp;
+&nbsp;import com.example.allinmarket.chat.client.ApiServerClient;
+&nbsp;import com.example.allinmarket.common.security.SecurityUtils;
+&nbsp;import dev.langchain4j.agent.tool.Tool;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;@Component
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class ChatTools {
+&nbsp;
+&nbsp;    private final ApiServerClient apiServerClient;
+&nbsp;
+&nbsp;    @Tool(&quot;사용자의 주문 목록을 조회합니다.&quot;)
+&nbsp;    public String getOrders() {
+<b class="nc">&nbsp;        return apiServerClient.getOrders(SecurityUtils.getCurrentToken());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Tool(&quot;특정 주문의 상세 정보를 조회합니다.&quot;)
+&nbsp;    public String getOrder(Long orderId) {
+<b class="nc">&nbsp;        return apiServerClient.getOrder(SecurityUtils.getCurrentToken(), orderId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Tool(&quot;키워드로 상품을 검색합니다.&quot;)
+&nbsp;    public String searchProducts(String keyword) {
+<b class="nc">&nbsp;        return apiServerClient.getProducts(SecurityUtils.getCurrentToken(), keyword);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Tool(&quot;특정 상품의 상세 정보를 조회합니다.&quot;)
+&nbsp;    public String getProduct(Long productId) {
+<b class="nc">&nbsp;        return apiServerClient.getProduct(SecurityUtils.getCurrentToken(), productId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Tool(&quot;&quot;&quot;
+&nbsp;            반품을 신청합니다. 사용자에게 반드시 확인 후 실행하세요.
+&nbsp;            reason 가능한 값:
+&nbsp;            - CHANGE_OF_MIND: 고객 단순 변심
+&nbsp;            - WRONG_ITEM: 잘못된 상품
+&nbsp;            - DAMAGED: 상품 손상
+&nbsp;            - PAYMENT_AMOUNT_MISMATCH: 주문 금액과 실결제 금액이 상이
+&nbsp;            description은 추가 설명 (선택사항)
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    public String createRefund(Long orderId, String reason, String description) {
+<b class="nc">&nbsp;        return apiServerClient.createRefund(SecurityUtils.getCurrentToken(), orderId, reason, description);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

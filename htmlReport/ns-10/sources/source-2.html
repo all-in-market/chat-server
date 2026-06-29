@@ -1,0 +1,176 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JwtChannelInterceptor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.common.security</a>
+</div>
+
+<h1>Coverage Summary for Class: JwtChannelInterceptor (com.example.allinmarket.common.security)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JwtChannelInterceptor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.common.security;
+&nbsp;
+&nbsp;import com.example.allinmarket.common.enums.ErrorEnum;
+&nbsp;import com.example.allinmarket.common.exception.BaseException;
+&nbsp;import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.messaging.Message;
+&nbsp;import org.springframework.messaging.MessageChannel;
+&nbsp;import org.springframework.messaging.simp.stomp.StompCommand;
+&nbsp;import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+&nbsp;import org.springframework.messaging.support.ChannelInterceptor;
+&nbsp;import org.springframework.messaging.support.MessageHeaderAccessor;
+&nbsp;import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Component
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class JwtChannelInterceptor implements ChannelInterceptor {
+&nbsp;    private final JwtProvider jwtProvider;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Message&lt;?&gt; preSend(Message&lt;?&gt; message, MessageChannel channel) {
+<b class="nc">&nbsp;        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);</b>
+&nbsp;
+&nbsp;        // 웹소켓 연결 시(CONNECT) 토큰 검증
+<b class="nc">&nbsp;        if (StompCommand.CONNECT.equals(accessor.getCommand())) {</b>
+&nbsp;
+<b class="nc">&nbsp;            log.info(&quot;HEADERS = {}&quot;, accessor.toNativeHeaderMap());</b>
+<b class="nc">&nbsp;            String token = accessor.getFirstNativeHeader(&quot;Authorization&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (token == null || !token.startsWith(&quot;Bearer &quot;)) {</b>
+<b class="nc">&nbsp;                throw new BaseException(ErrorEnum.UNAUTHORIZED);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            token = token.substring(7);</b>
+&nbsp;
+&nbsp;            // 토큰 유효성 검사 (실패 시 예외 발생, 연결 거부)
+<b class="nc">&nbsp;            if (!jwtProvider.validateToken(token)) {</b>
+<b class="nc">&nbsp;                throw new BaseException(ErrorEnum.UNAUTHORIZED);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Long userId = jwtProvider.getUserId(token);</b>
+<b class="nc">&nbsp;            RealtimeChatSenderType senderType = jwtProvider.getSenderType(token);</b>
+&nbsp;
+&nbsp;            // Principal 세팅
+<b class="nc">&nbsp;            UserPrincipal principal = new UserPrincipal(userId, senderType, token);</b>
+&nbsp;
+<b class="nc">&nbsp;            accessor.setUser(new UsernamePasswordAuthenticationToken(</b>
+<b class="nc">&nbsp;                    principal, null, List.of()</b>
+&nbsp;            ));
+&nbsp;        }
+<b class="nc">&nbsp;        log.info(&quot;STOMP COMMAND = {}&quot;, accessor.getCommand());</b>
+&nbsp;
+<b class="nc">&nbsp;        return message;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

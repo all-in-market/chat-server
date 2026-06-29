@@ -1,0 +1,296 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ChatController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.chat.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: ChatController (com.example.allinmarket.chat.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ChatController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    27.3%
+  </span>
+  <span class="absValue">
+    (3/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    36.4%
+  </span>
+  <span class="absValue">
+    (8/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    43.6%
+  </span>
+  <span class="absValue">
+    (34/78)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.chat.controller;
+&nbsp;
+&nbsp;import com.example.allinmarket.chat.assistant.AiAssistant;
+&nbsp;import com.example.allinmarket.chat.assistant.IntentClassifier;
+&nbsp;import com.example.allinmarket.chat.consts.ChatConsts;
+&nbsp;import com.example.allinmarket.chat.dto.ChatRequest;
+&nbsp;import com.example.allinmarket.chat.dto.EvaluateResponse;
+&nbsp;import com.example.allinmarket.chat.service.ModerationService;
+&nbsp;import com.example.allinmarket.common.security.SecurityUtils;
+&nbsp;import dev.langchain4j.model.chat.response.StreamingHandle;
+&nbsp;import dev.langchain4j.rag.content.retriever.ContentRetriever;
+&nbsp;import dev.langchain4j.rag.query.Query;
+&nbsp;import dev.langchain4j.service.TokenStream;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.core.task.TaskExecutor;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RequestHeader;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.concurrent.CountDownLatch;
+&nbsp;import java.util.concurrent.TimeUnit;
+&nbsp;import java.util.concurrent.atomic.AtomicReference;
+&nbsp;
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/chat&quot;)
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class ChatController {
+&nbsp;
+&nbsp;    private final AiAssistant aiAssistant;
+&nbsp;    private final IntentClassifier intentClassifier;
+&nbsp;    private final ModerationService moderationService;
+&nbsp;    private final TaskExecutor chatTaskExecutor;
+&nbsp;    private final ContentRetriever contentRetriever;
+&nbsp;
+&nbsp;    @PostMapping(value = &quot;/stream&quot;,
+&nbsp;            consumes = MediaType.APPLICATION_JSON_VALUE,
+&nbsp;            produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+&nbsp;    public SseEmitter stream(
+&nbsp;            @RequestBody ChatRequest request,
+&nbsp;            @RequestHeader(&quot;Authorization&quot;) String token) {
+&nbsp;
+<b class="fc">&nbsp;        SseEmitter emitter = new SseEmitter(ChatConsts.SSE_TIMEOUT);</b>
+<b class="fc">&nbsp;        AtomicReference&lt;StreamingHandle&gt; handleRef = new AtomicReference&lt;&gt;();</b>
+&nbsp;
+<b class="fc">&nbsp;        chatTaskExecutor.execute(() -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (moderationService.isFlagged(request.message())) {</b>
+<b class="nc">&nbsp;                    emitter.send(&quot;[부적절한 내용이 포함되어 있어 답변할 수 없습니다.]&quot;);</b>
+<b class="nc">&nbsp;                    emitter.complete();</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                Long userId = SecurityUtils.getCurrentUserId();</b>
+<b class="nc">&nbsp;                String intent = intentClassifier.classify(request.message());</b>
+&nbsp;
+<b class="nc">&nbsp;                TokenStream tokenStream = ChatConsts.SMALL_TALK.equals(intent)</b>
+<b class="nc">&nbsp;                        ? aiAssistant.smallTalk(userId, request.message())</b>
+<b class="nc">&nbsp;                        : aiAssistant.chat(userId, request.message());</b>
+&nbsp;
+<b class="nc">&nbsp;                tokenStream</b>
+<b class="nc">&nbsp;                        .onPartialResponseWithContext((chunk, context) -&gt; {</b>
+<b class="nc">&nbsp;                            handleRef.set(context.streamingHandle());</b>
+&nbsp;                            try {
+<b class="nc">&nbsp;                                emitter.send(chunk.text());</b>
+&nbsp;                            } catch (Exception e) {
+<b class="nc">&nbsp;                                log.error(&quot;[Chat] 스트리밍 전송 오류&quot;, e);</b>
+<b class="nc">&nbsp;                                context.streamingHandle().cancel();</b>
+<b class="nc">&nbsp;                                emitter.completeWithError(e);</b>
+&nbsp;                            }
+&nbsp;                        })
+<b class="nc">&nbsp;                        .onCompleteResponse(response -&gt; emitter.complete())</b>
+<b class="nc">&nbsp;                        .onError(e -&gt; {</b>
+<b class="nc">&nbsp;                            log.error(&quot;[Chat] 스트리밍 오류: {}&quot;, e.getMessage());</b>
+&nbsp;                            try {
+<b class="nc">&nbsp;                                emitter.send(&quot;[오류가 발생했습니다. 다시 시도해주세요.]&quot;);</b>
+&nbsp;                            } catch (Exception ex) {
+<b class="nc">&nbsp;                                log.error(&quot;[Chat] 오류 메시지 전송 실패&quot;, ex);</b>
+&nbsp;                            }
+<b class="nc">&nbsp;                            emitter.completeWithError(e);</b>
+&nbsp;                        })
+<b class="nc">&nbsp;                        .start();</b>
+&nbsp;
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;[Chat] 처리 오류&quot;, e);</b>
+<b class="nc">&nbsp;                emitter.completeWithError(e);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        emitter.onTimeout(() -&gt; {</b>
+<b class="nc">&nbsp;            log.info(&quot;[Chat] SSE 타임아웃&quot;);</b>
+<b class="nc">&nbsp;            StreamingHandle handle = handleRef.get();</b>
+<b class="nc">&nbsp;            if (handle != null) handle.cancel();</b>
+<b class="nc">&nbsp;            emitter.complete();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        emitter.onCompletion(() -&gt; {</b>
+<b class="nc">&nbsp;            log.info(&quot;[Chat] SSE 연결 종료&quot;);</b>
+<b class="nc">&nbsp;            StreamingHandle handle = handleRef.get();</b>
+<b class="nc">&nbsp;            if (handle != null) handle.cancel();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        emitter.onError(e -&gt; {</b>
+<b class="nc">&nbsp;            log.error(&quot;[Chat] SSE 오류&quot;, e);</b>
+<b class="nc">&nbsp;            StreamingHandle handle = handleRef.get();</b>
+<b class="nc">&nbsp;            if (handle != null) handle.cancel();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        return emitter;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(value = &quot;/evaluate&quot;, consumes = MediaType.APPLICATION_JSON_VALUE)
+&nbsp;    public ResponseEntity&lt;EvaluateResponse&gt; evaluate(
+&nbsp;            @RequestBody ChatRequest request,
+&nbsp;            @RequestHeader(&quot;Authorization&quot;) String token) {
+&nbsp;
+<b class="fc">&nbsp;        if (moderationService.isFlagged(request.message())) {</b>
+<b class="fc">&nbsp;            return ResponseEntity.ok(new EvaluateResponse(&quot;[부적절한 내용]&quot;, List.of()));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        Long userId = SecurityUtils.getCurrentUserId();</b>
+<b class="fc">&nbsp;        String intent = intentClassifier.classify(request.message());</b>
+&nbsp;
+&nbsp;        // 1. 실제 RAG 컨텍스트 직접 검색
+<b class="fc">&nbsp;        List&lt;String&gt; contexts = List.of();</b>
+<b class="fc">&nbsp;        if (!ChatConsts.SMALL_TALK.equals(intent)) {</b>
+<b class="fc">&nbsp;            contexts = contentRetriever</b>
+<b class="fc">&nbsp;                    .retrieve(new Query(request.message()))</b>
+<b class="fc">&nbsp;                    .stream()</b>
+<b class="fc">&nbsp;                    .map(content -&gt; content.textSegment().text())</b>
+<b class="fc">&nbsp;                    .toList();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 2. 답변 생성
+<b class="fc">&nbsp;        StringBuilder sb = new StringBuilder();</b>
+<b class="fc">&nbsp;        CountDownLatch latch = new CountDownLatch(1);</b>
+<b class="fc">&nbsp;        AtomicReference&lt;Throwable&gt; errorRef = new AtomicReference&lt;&gt;();</b>
+<b class="fc">&nbsp;        AtomicReference&lt;StreamingHandle&gt; handleRef = new AtomicReference&lt;&gt;();</b>
+&nbsp;
+<b class="fc">&nbsp;        TokenStream tokenStream = ChatConsts.SMALL_TALK.equals(intent)</b>
+<b class="fc">&nbsp;                ? aiAssistant.smallTalk(userId, request.message())</b>
+<b class="fc">&nbsp;                : aiAssistant.chat(userId, request.message());</b>
+&nbsp;
+<b class="fc">&nbsp;        tokenStream</b>
+<b class="fc">&nbsp;                .onPartialResponseWithContext((chunk, context) -&gt; {</b>
+<b class="nc">&nbsp;                    handleRef.set(context.streamingHandle());</b>
+<b class="nc">&nbsp;                    sb.append(chunk.text());</b>
+&nbsp;                })
+<b class="fc">&nbsp;                .onCompleteResponse(response -&gt; latch.countDown())</b>
+<b class="fc">&nbsp;                .onError(e -&gt; {</b>
+<b class="nc">&nbsp;                    errorRef.set(e);</b>
+<b class="nc">&nbsp;                    latch.countDown();</b>
+&nbsp;                })
+<b class="fc">&nbsp;                .start();</b>
+&nbsp;
+&nbsp;        try {
+<b class="pc">&nbsp;            if (!latch.await(30, TimeUnit.SECONDS)) {</b>
+<b class="nc">&nbsp;                StreamingHandle handle = handleRef.get();</b>
+<b class="nc">&nbsp;                if (handle != null) handle.cancel();</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(504).body(new EvaluateResponse(&quot;[타임아웃]&quot;, List.of()));</b>
+&nbsp;            }
+&nbsp;        } catch (InterruptedException e) {
+<b class="nc">&nbsp;            Thread.currentThread().interrupt();</b>
+<b class="nc">&nbsp;            return ResponseEntity.internalServerError().body(new EvaluateResponse(&quot;[오류]&quot;, List.of()));</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (errorRef.get() != null) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.internalServerError().body(new EvaluateResponse(&quot;[오류]&quot;, List.of()));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return ResponseEntity.ok(new EvaluateResponse(sb.toString(), contexts));</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

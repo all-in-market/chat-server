@@ -1,0 +1,196 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RealtimeChatProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.realtimechat.service</a>
+</div>
+
+<h1>Coverage Summary for Class: RealtimeChatProvider (com.example.allinmarket.realtimechat.service)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RealtimeChatProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RealtimeChatProvider$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.realtimechat.service;
+&nbsp;
+&nbsp;import com.example.allinmarket.buyer.entity.Buyer;
+&nbsp;import com.example.allinmarket.buyer.repository.BuyerRepository;
+&nbsp;import com.example.allinmarket.common.enums.ErrorEnum;
+&nbsp;import com.example.allinmarket.common.exception.BaseException;
+&nbsp;import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
+&nbsp;import com.example.allinmarket.seller.entity.Seller;
+&nbsp;import com.example.allinmarket.seller.repository.SellerRepository;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class RealtimeChatProvider {
+&nbsp;    private final BuyerRepository buyerRepository;
+&nbsp;    private final SellerRepository sellerRepository;
+&nbsp;
+&nbsp;    public String getUserName(Long userId, RealtimeChatSenderType senderType) {
+<b class="nc">&nbsp;        return switch (senderType) {</b>
+<b class="nc">&nbsp;            case BUYER -&gt; buyerRepository.findById(userId).orElseThrow(</b>
+<b class="nc">&nbsp;                    () -&gt; new BaseException(ErrorEnum.BUYER_NOT_FOUND)</b>
+<b class="nc">&nbsp;            ).getName();</b>
+&nbsp;
+<b class="nc">&nbsp;            case SELLER -&gt; sellerRepository.findById(userId).orElseThrow(</b>
+<b class="nc">&nbsp;                    () -&gt; new BaseException(ErrorEnum.SELLER_NOT_FOUND)</b>
+<b class="nc">&nbsp;            ).getStoreName();</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    public Map&lt;Long, String&gt; getUserNames(List&lt;Long&gt; userIds, RealtimeChatSenderType senderType) {
+<b class="nc">&nbsp;        if (userIds == null || userIds.isEmpty()) return Map.of();</b>
+&nbsp;
+<b class="nc">&nbsp;        return switch (senderType) {</b>
+<b class="nc">&nbsp;            case BUYER -&gt; buyerRepository.findAllById(userIds).stream()</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toMap(Buyer::getId, Buyer::getName));</b>
+&nbsp;
+<b class="nc">&nbsp;            case SELLER -&gt; sellerRepository.findAllById(userIds).stream()</b>
+<b class="nc">&nbsp;                    .collect(Collectors.toMap(Seller::getId, Seller::getStoreName));</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

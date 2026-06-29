@@ -1,0 +1,215 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Seller</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.seller.entity</a>
+</div>
+
+<h1>Coverage Summary for Class: Seller (com.example.allinmarket.seller.entity)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Seller</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.seller.entity;
+&nbsp;
+&nbsp;import com.example.allinmarket.common.entity.DeletableEntity;
+&nbsp;import com.example.allinmarket.common.enums.UserRole;
+&nbsp;import com.example.allinmarket.seller.enums.SellerStatus;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import jakarta.validation.constraints.NotBlank;
+&nbsp;import lombok.AccessLevel;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.NoArgsConstructor;
+&nbsp;
+&nbsp;@Getter
+&nbsp;@Entity
+&nbsp;@NoArgsConstructor(access = AccessLevel.PROTECTED)
+&nbsp;@Table(name = &quot;sellers&quot;)
+&nbsp;public class Seller extends DeletableEntity {
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long id;
+&nbsp;
+&nbsp;    @NotBlank
+&nbsp;    @Column(length = 100, unique = true)
+&nbsp;    private String email;
+&nbsp;
+&nbsp;    @NotBlank
+&nbsp;    @Column(length = 255)
+&nbsp;    private String password;
+&nbsp;
+&nbsp;    @NotBlank
+&nbsp;    @Column(length = 50)
+&nbsp;    private String name;
+&nbsp;
+&nbsp;    @NotBlank
+&nbsp;    @Column(length = 20)
+&nbsp;    private String phone;
+&nbsp;
+&nbsp;    @NotBlank
+&nbsp;    @Column(name = &quot;store_name&quot;, length = 100)
+&nbsp;    private String storeName;
+&nbsp;
+&nbsp;    @NotBlank
+&nbsp;    @Column(name = &quot;biz_number&quot;, length = 20, unique = true)
+&nbsp;    private String bizNumber;
+&nbsp;
+&nbsp;    @NotBlank
+&nbsp;    @Column(name = &quot;bank_account&quot;, length = 50)
+&nbsp;    private String bankAccount;
+&nbsp;
+&nbsp;    @Column(length = 20, nullable = false)
+&nbsp;    @Enumerated(EnumType.STRING)
+&nbsp;    private SellerStatus status = SellerStatus.PENDING;
+&nbsp;
+&nbsp;    @Column(length = 20, nullable = false)
+&nbsp;    @Enumerated(EnumType.STRING)
+&nbsp;    private UserRole role = UserRole.SELLER;
+&nbsp;
+&nbsp;    public static Seller of(
+&nbsp;            String email,
+&nbsp;            String password,
+&nbsp;            String name,
+&nbsp;            String phone,
+&nbsp;            String storeName,
+&nbsp;            String bizNumber,
+&nbsp;            String bankAccount) {
+<b class="nc">&nbsp;        Seller seller = new Seller();</b>
+&nbsp;
+<b class="nc">&nbsp;        seller.email = email;</b>
+<b class="nc">&nbsp;        seller.password = password;</b>
+<b class="nc">&nbsp;        seller.name = name;</b>
+<b class="nc">&nbsp;        seller.phone = phone;</b>
+<b class="nc">&nbsp;        seller.storeName = storeName;</b>
+<b class="nc">&nbsp;        seller.bizNumber = bizNumber;</b>
+<b class="nc">&nbsp;        seller.bankAccount = bankAccount;</b>
+<b class="nc">&nbsp;        seller.status = SellerStatus.PENDING;</b>
+<b class="nc">&nbsp;        seller.role = UserRole.SELLER;</b>
+&nbsp;
+<b class="nc">&nbsp;        return seller;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateEmail(String email) {
+<b class="nc">&nbsp;        this.email = email;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updatePassword(String password) {
+<b class="nc">&nbsp;        this.password = password;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateName(String name) {
+<b class="nc">&nbsp;        this.name = name;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updatePhone(String phone) {
+<b class="nc">&nbsp;        this.phone = phone;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateStoreName(String storeName) {
+<b class="nc">&nbsp;        this.storeName = storeName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateBizNumber(String bizNumber) {
+<b class="nc">&nbsp;        this.bizNumber = bizNumber;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateBankAccount(String bankAccount) {
+<b class="nc">&nbsp;        this.bankAccount = bankAccount;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void updateStatus(SellerStatus status) {
+<b class="nc">&nbsp;        this.status = status;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

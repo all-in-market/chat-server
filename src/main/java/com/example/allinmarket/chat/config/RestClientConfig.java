@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+/**
+ *  통신을 위한 customer-server의 rest client를 bean으로 등록
+ */
 @Configuration
 public class RestClientConfig {
 
@@ -20,6 +23,7 @@ public class RestClientConfig {
         factory.setReadTimeout(ChatConsts.READ_TIMEOUT);
 
         return RestClient.builder()
+                .requestFactory(factory)
                 .baseUrl(apiServerUrl)
                 .build();
     }

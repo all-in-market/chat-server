@@ -22,6 +22,7 @@ public class ChatBotConfig {
     private final RedisChatMemoryStore redisChatMemoryStore;
     private final ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
+    // 사용자별 최대 10개까지의 대화 내용을 redis에 저장
     @Bean
     public ChatMemoryProvider chatMemoryProvider() {
         return memoryId -> MessageWindowChatMemory.builder()

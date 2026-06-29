@@ -62,7 +62,10 @@ public class SemanticDocumentSplitter {
         return chunks;
     }
 
+    // 문서를 문장단위로 분리하여 반환
     private List<String> splitIntoSentences(String text) {
+
+        // 문장 단위로 분리하는 breakIterator
         BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.KOREAN);
         iterator.setText(text);
 
@@ -78,6 +81,7 @@ public class SemanticDocumentSplitter {
         return sentences;
     }
 
+    // 두 임베딩된 문장간의 유사도를 반환하는 메서드
     private double cosineSimilarity(Embedding a, Embedding b) {
         float[] vecA = a.vector();
         float[] vecB = b.vector();

@@ -1,0 +1,347 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RealtimeChatFacade</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.realtimechat.facade</a>
+</div>
+
+<h1>Coverage Summary for Class: RealtimeChatFacade (com.example.allinmarket.realtimechat.facade)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RealtimeChatFacade</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RealtimeChatFacade$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">RealtimeChatFacade$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/53)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.realtimechat.facade;
+&nbsp;
+&nbsp;import com.example.allinmarket.common.enums.ErrorEnum;
+&nbsp;import com.example.allinmarket.common.exception.BaseException;
+&nbsp;import com.example.allinmarket.common.redis.RedisPublisher;
+&nbsp;import com.example.allinmarket.common.security.UserPrincipal;
+&nbsp;import com.example.allinmarket.realtimechat.dto.RealtimeChatMessageDto;
+&nbsp;import com.example.allinmarket.realtimechat.entity.RealtimeChatMessage;
+&nbsp;import com.example.allinmarket.realtimechat.enums.RealtimeChatMessageType;
+&nbsp;import com.example.allinmarket.realtimechat.enums.RealtimeChatSenderType;
+&nbsp;import com.example.allinmarket.realtimechat.service.RealtimeChatProvider;
+&nbsp;import com.example.allinmarket.realtimechat.service.RealtimeChatService;
+&nbsp;import com.example.allinmarket.realtimechat.service.RedisUnreadService;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.messaging.simp.SimpMessageSendingOperations;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.transaction.support.TransactionSynchronization;
+&nbsp;import org.springframework.transaction.support.TransactionSynchronizationManager;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;@Service
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class RealtimeChatFacade {
+&nbsp;    private final RealtimeChatService chatService;
+&nbsp;    private final RedisUnreadService unreadService;
+&nbsp;    private final RedisPublisher redisPublisher;
+&nbsp;    private final RealtimeChatProvider chatProvider;
+&nbsp;    private final SimpMessageSendingOperations messageSendingOperations;
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    public void sendMessage(RealtimeChatMessageDto dto, Long senderId, RealtimeChatSenderType senderType) {
+&nbsp;        // 참여자 검증
+<b class="nc">&nbsp;        chatService.validateParticipant(dto.roomId(), senderId);</b>
+&nbsp;
+&nbsp;        // 메세지 저장
+<b class="nc">&nbsp;        RealtimeChatMessage saved = chatService.save(dto, senderId);</b>
+&nbsp;
+&nbsp;        // 마지막 메세지 저장
+<b class="nc">&nbsp;        chatService.updateLastMessage(saved.getRoomId(), saved.getMessage(), saved.getCreatedAt());</b>
+&nbsp;
+&nbsp;        // 참여자 조회
+<b class="nc">&nbsp;        List&lt;Long&gt; participants = chatService.getParticipantIds(dto.roomId());</b>
+&nbsp;
+<b class="nc">&nbsp;        String senderName = chatProvider.getUserName(senderId, senderType);</b>
+&nbsp;
+<b class="nc">&nbsp;        Long roomId = saved.getRoomId();</b>
+<b class="nc">&nbsp;        String message = saved.getMessage();</b>
+<b class="nc">&nbsp;        String tempId = dto.tempId();</b>
+&nbsp;
+<b class="nc">&nbsp;        afterCommit(() -&gt; {</b>
+&nbsp;            try {
+&nbsp;                // unread 증가
+<b class="nc">&nbsp;                for (Long userId : participants) {</b>
+<b class="nc">&nbsp;                    if (!userId.equals(senderId)) {</b>
+<b class="nc">&nbsp;                        unreadService.incrementUnread(dto.roomId(), userId);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                // unread 맵 생성
+<b class="nc">&nbsp;                Map&lt;Long, Integer&gt; unreadMap = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;                for (Long userId : participants) {</b>
+<b class="nc">&nbsp;                    unreadMap.put(userId, unreadService.getUnread(dto.roomId(), userId));</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                RealtimeChatMessageDto response = new RealtimeChatMessageDto(</b>
+&nbsp;                        RealtimeChatMessageType.TALK,
+&nbsp;                        roomId,
+&nbsp;                        senderName,
+&nbsp;                        message,
+&nbsp;                        unreadMap,
+&nbsp;                        tempId
+&nbsp;                );
+&nbsp;
+<b class="nc">&nbsp;                redisPublisher.publish(dto.roomId(), response);</b>
+&nbsp;
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;메세지 발행 실패&quot;, e);</b>
+&nbsp;
+<b class="nc">&nbsp;                sendAck(senderId, tempId, &quot;REDIS_PUBLISH_FAILED&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            sendAck(senderId, tempId, &quot;SUCCESS&quot;);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    public void enterRoom(RealtimeChatMessageDto dto, Long userId, RealtimeChatSenderType senderType) {
+&nbsp;        // 참여자 검증
+<b class="nc">&nbsp;        chatService.validateParticipant(dto.roomId(), userId);</b>
+&nbsp;
+<b class="nc">&nbsp;        String senderName = chatProvider.getUserName(userId, senderType);</b>
+&nbsp;
+&nbsp;        // 입장 이벤트 생성 (메세지 X)
+<b class="nc">&nbsp;        RealtimeChatMessageDto messageDto = new RealtimeChatMessageDto(</b>
+&nbsp;                RealtimeChatMessageType.ENTER,
+<b class="nc">&nbsp;                dto.roomId(),</b>
+&nbsp;                senderName,
+&nbsp;                null, // 메세지는 없음
+<b class="nc">&nbsp;                Map.of(), // unread 없음</b>
+<b class="nc">&nbsp;                dto.tempId()</b>
+&nbsp;        );
+&nbsp;
+<b class="nc">&nbsp;        afterCommit(() -&gt; {</b>
+&nbsp;            try {
+&nbsp;                // unread 초기화 (입장 시 읽음 처리)
+<b class="nc">&nbsp;                unreadService.resetUnread(dto.roomId(), userId);</b>
+&nbsp;
+<b class="nc">&nbsp;                redisPublisher.publish(dto.roomId(), messageDto);</b>
+&nbsp;
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                log.error(&quot;입장 이벤트 실패&quot;, e);</b>
+<b class="nc">&nbsp;                sendAck(userId, dto.tempId(), &quot;REDIS_PUBLISH_FAILED&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            sendAck(userId, dto.tempId(), &quot;SUCCESS&quot;);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    public void handleMessage(RealtimeChatMessageDto dto, UserPrincipal userPrincipal) {
+&nbsp;        try {
+<b class="nc">&nbsp;            chatService.validateParticipant(dto.roomId(), userPrincipal.userId());</b>
+&nbsp;
+<b class="nc">&nbsp;            if (dto.type() == null){</b>
+<b class="nc">&nbsp;                throw new BaseException(ErrorEnum.MESSAGE_TYPE_INVALID);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            switch (dto.type()) {</b>
+<b class="nc">&nbsp;                case ENTER -&gt; enterRoom(dto, userPrincipal.userId(), userPrincipal.senderType());</b>
+<b class="nc">&nbsp;                case TALK -&gt; sendMessage(dto, userPrincipal.userId(), userPrincipal.senderType());</b>
+<b class="nc">&nbsp;                default -&gt; throw new BaseException(ErrorEnum.MESSAGE_TYPE_INVALID);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;        } catch (BaseException e) {
+<b class="nc">&nbsp;            log.error(&quot;채팅 처리 중 비즈니스 예외 발생: {}&quot;, e.getMessage());</b>
+<b class="nc">&nbsp;            sendAck(userPrincipal.userId(), dto.tempId(), &quot;ERROR_&quot; + e.getErrorEnum());</b>
+&nbsp;            throw e;
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;시스템 장애로 인한 채팅 전송 실패&quot;, e);</b>
+<b class="nc">&nbsp;            sendAck(userPrincipal.userId(), dto.tempId(), &quot;SYSTEM_ERROR&quot;);</b>
+&nbsp;            throw e;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendAck(Long userId, String tempId, String status) {
+<b class="nc">&nbsp;        if (tempId == null) return;</b>
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            messageSendingOperations.convertAndSendToUser(</b>
+<b class="nc">&nbsp;                    userId.toString(),</b>
+&nbsp;                    &quot;/sub/chat/status&quot;,
+<b class="nc">&nbsp;                    Map.of(&quot;tempId&quot;, tempId, &quot;status&quot;, status)</b>
+&nbsp;            );
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;ACK 전송 실패 userId={}, tempId={}, status={}&quot;, userId, tempId, status, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void afterCommit(Runnable task) {
+<b class="nc">&nbsp;        TransactionSynchronizationManager.registerSynchronization(</b>
+<b class="nc">&nbsp;                new TransactionSynchronization() {</b>
+&nbsp;                    @Override
+&nbsp;                    public void afterCommit() {
+<b class="nc">&nbsp;                        task.run();</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;        );
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

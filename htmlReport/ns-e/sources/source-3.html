@@ -1,0 +1,161 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RedisPublisher</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.common.redis</a>
+</div>
+
+<h1>Coverage Summary for Class: RedisPublisher (com.example.allinmarket.common.redis)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RedisPublisher</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.common.redis;
+&nbsp;
+&nbsp;import com.example.allinmarket.common.enums.ErrorEnum;
+&nbsp;import com.example.allinmarket.common.exception.BaseException;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.data.redis.core.RedisTemplate;
+&nbsp;import org.springframework.retry.annotation.Backoff;
+&nbsp;import org.springframework.retry.annotation.Recover;
+&nbsp;import org.springframework.retry.annotation.Retryable;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;
+&nbsp;@Component
+&nbsp;@RequiredArgsConstructor
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;public class RedisPublisher {
+&nbsp;    private final RedisTemplate&lt;String, String&gt; redisTemplate;
+&nbsp;    private final ObjectMapper objectMapper;
+&nbsp;
+&nbsp;    // 채팅 메세지를 Redis Pun/Sub으로 발행
+&nbsp;    // 모든 서버 인스턴스에게 메세지 전달
+&nbsp;    @Retryable(retryFor = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 5000))
+&nbsp;    public void publish(Long roomId, Object message) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String topic = &quot;chat.room.&quot; + roomId;</b>
+&nbsp;
+<b class="nc">&nbsp;            String json = objectMapper.writeValueAsString(message);</b>
+&nbsp;
+<b class="nc">&nbsp;            redisTemplate.convertAndSend(topic, json);</b>
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new BaseException(ErrorEnum.REDIS_PUBLISH_FAILED);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void publishRead(Long roomId, Object message) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String topic = &quot;chat.read.&quot; + roomId;</b>
+&nbsp;
+<b class="nc">&nbsp;            String json = objectMapper.writeValueAsString(message);</b>
+&nbsp;
+<b class="nc">&nbsp;            redisTemplate.convertAndSend(topic, json);</b>
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new BaseException(ErrorEnum.REDIS_PUBLISH_READ_FAILED);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Recover // 재시도 실패 시 최종 실행 되는 로직
+&nbsp;    public void recover(Exception e, Long roomId, Object message) throws Exception {
+<b class="nc">&nbsp;        log.error(&quot;Redis 발행 최종 실패: roomId = {}, Error = {}&quot;, roomId, e.getMessage(), e);</b>
+&nbsp;        throw e;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>

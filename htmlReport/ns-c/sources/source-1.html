@@ -1,0 +1,219 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ErrorEnum</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.example.allinmarket.common.enums</a>
+</div>
+
+<h1>Coverage Summary for Class: ErrorEnum (com.example.allinmarket.common.enums)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ErrorEnum</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (66/66)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.example.allinmarket.common.enums;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;
+<b class="fc">&nbsp;@Getter</b>
+&nbsp;@RequiredArgsConstructor
+&nbsp;public enum ErrorEnum {
+&nbsp;
+&nbsp;    // Common
+<b class="fc">&nbsp;    INVALID_INPUT(400, &quot;잘못된 입력값입니다.&quot;),</b>
+<b class="fc">&nbsp;    UNAUTHORIZED(401, &quot;인증이 필요합니다.&quot;),</b>
+<b class="fc">&nbsp;    FORBIDDEN(403, &quot;접근 권한이 없습니다.&quot;),</b>
+<b class="fc">&nbsp;    NOT_FOUND(404, &quot;리소스를 찾을 수 없습니다.&quot;),</b>
+<b class="fc">&nbsp;    INTERNAL_SERVER_ERROR(500, &quot;서버 내부 오류가 발생했습니다.&quot;),</b>
+<b class="fc">&nbsp;    LOCK_ACQUISITION_FAILED(500, &quot;요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.&quot;),</b>
+<b class="fc">&nbsp;    REDIS_UNAVAILABLE(503, &quot;Redis 서버에 연결할 수 없습니다.&quot;),</b>
+<b class="fc">&nbsp;    INVALID_ARGUMENT(400, &quot;요청값이 올바르지 않습니다&quot;),</b>
+<b class="fc">&nbsp;    DATA_CONFLICT(409, &quot;요청이 현재 데이터 상태와 충돌합니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Order
+<b class="fc">&nbsp;    ORDER_NOT_FOUND(404, &quot;존재하지 않는 주문입니다.&quot;),</b>
+<b class="fc">&nbsp;    ORDER_ALREADY_COMPLETED(400, &quot;이미 결제 완료된 주문입니다.&quot;),</b>
+<b class="fc">&nbsp;    ORDER_NOT_CANCELLABLE(400, &quot;취소할 수 없는 주문 상태입니다.&quot;),</b>
+<b class="fc">&nbsp;    ORDER_NOT_PAYABLE(400, &quot;해당 주문 상태에서는 결제가 불가능합니다.&quot;),</b>
+<b class="fc">&nbsp;    ORDER_NOT_REFUNDABLE(409, &quot;해당 주문은 환불할 수 없는 상태입니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Cart
+<b class="fc">&nbsp;    CART_ITEMS_EMPTY(404, &quot;주문할 장바구니 상품이 없습니다.&quot;),</b>
+<b class="fc">&nbsp;    INVALID_CART_ITEM_OWNER(403, &quot;다른 사용자의 장바구니 상품이 포함되어 있습니다.&quot;),</b>
+<b class="fc">&nbsp;    CART_NOT_FOUND(404, &quot;장바구니가 존재하지 않습니다.&quot;),</b>
+<b class="fc">&nbsp;    CART_ITEMS_NOT_FOUND(404, &quot;장바구니에 해당 상품이 존재하지 않습니다.&quot;),</b>
+<b class="fc">&nbsp;    INVALID_ORDER_CART_ITEMS(404, &quot;요청한 장바구니 상품이 유효하지 않습니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Product
+<b class="fc">&nbsp;    PRODUCT_NOT_FOUND(404, &quot;존재하지 않는 상품입니다.&quot;),</b>
+<b class="fc">&nbsp;    INVALID_ORDER_PRODUCT(404, &quot;주문 대상 상품이 유효하지 않습니다.&quot;),</b>
+<b class="fc">&nbsp;    PRODUCT_OUT_OF_STOCK(409, &quot;해당 상품의 재고가 부족합니다.&quot;),</b>
+<b class="fc">&nbsp;    PRODUCT_NOT_AVAILABLE(409, &quot;현재 판매 중인 상품이 아닙니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Payment
+<b class="fc">&nbsp;    PAYMENT_ALREADY_EXISTS(400, &quot;이미 결제된 주문입니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_NOT_COMPLETED(400, &quot;결제가 완료되지 않았습니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_AMOUNT_MISMATCH(400, &quot;결제 금액이 주문 금액과 일치하지 않습니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_MISMATCH(400, &quot;결제 정보가 유효하지 않습니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_AMOUNT_INVALID(400, &quot;결제 금액이 올바르지 않습니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_NOT_REFUNDABLE(400, &quot;환불이 불가능한 상태의 결제입니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_FORBIDDEN(403, &quot;해당 결제에 대한 접근 권한이 없습니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_ALREADY_PROCESSED(409, &quot;이미 처리된 결제입니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_ALREADY_FAILED(409, &quot;이미 실패 처리된 결제입니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_ALREADY_REFUNDED(409, &quot;이미 환불 처리된 결제입니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_FAILED(500, &quot;결제 처리 중 오류가 발생했습니다.&quot;),</b>
+<b class="fc">&nbsp;    PAYMENT_NOT_FOUND(404, &quot;결제 내역이 없습니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Refund
+<b class="fc">&nbsp;    REFUND_ALREADY_EXISTS(409, &quot;이미 환불이 진행 중이거나 처리된 결제입니다.&quot;),</b>
+<b class="fc">&nbsp;    REFUND_FORBIDDEN(403, &quot;해당 결제에 대한 환불 신청 권한이 없습니다.&quot;),</b>
+<b class="fc">&nbsp;    REFUND_AMOUNT_MISMATCH_NOT_FOUND(400, &quot;결제 금액이 주문 금액과 일치하여 금액 불일치 환불을 생성할 수 없습니다.&quot;),</b>
+<b class="fc">&nbsp;    REFUND_NOT_FOUND(404, &quot;존재하지 않는 환불내역 입니다.&quot;),</b>
+<b class="fc">&nbsp;    REFUND_FAILED(500, &quot;환불 처리가 실패했습니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Address
+<b class="fc">&nbsp;    ADDRESS_NOT_FOUND(404, &quot;존재하지 않는 주소입니다.&quot;),</b>
+&nbsp;
+&nbsp;    // User
+<b class="fc">&nbsp;    USER_NOT_FOUND(404, &quot;존재하지 않는 사용자입니다.&quot;),</b>
+<b class="fc">&nbsp;    USER_ALREADY_DELETED(400, &quot;이미 탈퇴한 사용자입니다.&quot;),</b>
+&nbsp;  
+&nbsp;    // BUYER
+<b class="fc">&nbsp;    BUYER_NOT_FOUND(404, &quot;존재하지 않는 사용자입니다.&quot;),</b>
+<b class="fc">&nbsp;    BUYER_ALREADY_DELETED(400, &quot;이미 탈퇴한 사용자입니다.&quot;),</b>
+<b class="fc">&nbsp;    EMAIL_ALREADY_EXISTS(400, &quot;이미 사용 중인 이메일입니다.&quot;),</b>
+<b class="fc">&nbsp;    PASSWORD_MISMATCH(401, &quot;비밀번호가 올바르지 않습니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Seller
+<b class="fc">&nbsp;    SELLER_NOT_FOUND(404, &quot;존재하지 않는 판매자입니다.&quot;),</b>
+<b class="fc">&nbsp;    SELLER_ALREADY_DELETED(400, &quot;이미 탈퇴한 판매자입니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Token
+<b class="fc">&nbsp;    TOKEN_EXPIRED(401, &quot;만료된 토큰입니다.&quot;),</b>
+<b class="fc">&nbsp;    TOKEN_INVALID(401, &quot;유효하지 않은 토큰입니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Category
+<b class="fc">&nbsp;    CATEGORY_NOT_FOUND(404, &quot;존재하지 않는 카테고리입니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Dashboard
+<b class="fc">&nbsp;    DASHBOARD_NOT_FOUND(404, &quot;대시보드가 존재하지 않습니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Redis
+<b class="fc">&nbsp;    REDIS_LOCK_CONFLICT(409, &quot;현재 요청이 처리 중입니다. 잠시 후 다시 시도해주세요.&quot;),</b>
+<b class="fc">&nbsp;    REDIS_LOCK_INTERRUPTED(409, &quot;요청 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.&quot;),</b>
+&nbsp;  
+&nbsp;    // Statistics
+<b class="fc">&nbsp;    STATISTICS_NOT_FOUND(404, &quot;존재하지 않는 통계 데이터입니다.&quot;),</b>
+&nbsp;
+&nbsp;    // RAG
+<b class="fc">&nbsp;    DOCUMENT_LOAD_FAILED(500, &quot;문서 로드에 실패했습니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Chat
+<b class="fc">&nbsp;    CHAT_ROOM_FORBIDDEN(403, &quot;해당 채팅방에 대한 접근 권한이 없습니다.&quot;),</b>
+<b class="fc">&nbsp;    CHAT_ROOM_NOT_FOUND(404, &quot;채팅방이 존재하지 않습니다.&quot;),</b>
+<b class="fc">&nbsp;    CHAT_ROOM_ALREADY_EXISTS(409, &quot;채팅방이 이미 존재 합니다.&quot;),</b>
+<b class="fc">&nbsp;    SENDER_TYPE_INVALID(400, &quot;잘못된 SENDER_TYPE 입니다.&quot;),</b>
+<b class="fc">&nbsp;    MESSAGE_TYPE_INVALID(400, &quot;잘못된 MESSAGE_TYPE 입니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Chat Memory
+<b class="fc">&nbsp;    CHAT_MEMORY_ID_INVALID(400, &quot;유효하지 않은 메모리 ID입니다.&quot;),</b>
+&nbsp;
+&nbsp;    // Redis
+<b class="fc">&nbsp;    REDIS_PUBLISH_READ_FAILED(500, &quot;Redis에서 발행된 메세지를 읽는 데 실패했습니다.&quot;),</b>
+<b class="fc">&nbsp;    REDIS_PUBLISH_FAILED(500, &quot;Redis에서 메세지를 발행하는데 실패했습니다.&quot;);</b>
+&nbsp;
+&nbsp;    private final int status;
+&nbsp;    private final String message;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-10 20:06</div>
+</div>
+</body>
+</html>
